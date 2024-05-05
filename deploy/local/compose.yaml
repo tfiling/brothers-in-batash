@@ -1,0 +1,12 @@
+name: dev
+services:
+  webserver:
+    image: ldg/webserver:${TAG}
+    command: "webserver"
+    ports:
+      - "3000:3000"
+    networks:
+      - main-net
+
+networks:
+  main-net: { }
