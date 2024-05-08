@@ -2,12 +2,6 @@ package controllers
 
 import "github.com/gofiber/fiber/v2"
 
-const APIRouteBasePath = "/api/v1"
-
-type Controller interface {
-	SetupRoutes() error
-}
-
 type HelloController struct {
 	router fiber.Router
 }
