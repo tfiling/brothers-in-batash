@@ -12,13 +12,9 @@ func main() {
 
 	app := fiber.New()
 	apiGroup := app.Group(controllers.APIRouteBasePath)
-	helloController, err := controllers.NewHelloController(apiGroup)
+	err := controllers.SetupRoutes(apiGroup)
 	if err != nil {
-		fmt.Printf("error creating hello controller: %v", err)
-		return
-	}
-	if err = helloController.SetupRoutes(); err != nil {
-		fmt.Printf("error setting up routes: %v", err)
+		fmt.Printf("error setting up rooutes: %v", err)
 		return
 	}
 
