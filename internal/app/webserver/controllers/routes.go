@@ -9,7 +9,7 @@ import (
 
 const (
 	APIRouteBasePath = "/api/v1"
-	RegisterRoute    = "/users/register"
+	RegisterRoute    = "/auth/register"
 )
 
 type Controller interface {
