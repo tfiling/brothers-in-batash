@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"brothers_in_batash/internal/app/webserver/api"
+	"brothers_in_batash/internal/pkg/logging"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
 	"errors"
-	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -31,24 +31,26 @@ func (c *RegistrationController) RegisterRoutes(router fiber.Router) error {
 func (c *RegistrationController) registerUser(ctx *fiber.Ctx) error {
 	reqBody := api.UserRegistrationReqBody{}
 	if err := ctx.BodyParser(&reqBody); err != nil {
-		fmt.Printf("Could not parse user registration request body: %v", err)
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		logging.Info("Could not parse user registration request body", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 	if err := validator.New().Struct(reqBody); err != nil {
-		fmt.Printf("User registration request failed validation: %v", err)
-		return ctx.Status(fiber.StatusBadRequest).SendString("invalid registration request body")
+		logging.Info("User registration request failed validation", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
 	hashedPassword, err := hashPassword(reqBody.Password)
 	if err != nil {
-		fmt.Printf("Could not hash user pasword: %v", err)
-		return ctx.Status(fiber.StatusInternalServerError).SendString("Error hashing password")
+		logging.Info("Could not hash user password", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
 	if res, err := c.userStore.FindUserByUsername(reqBody.Username); err != nil {
-		fmt.Printf("Could not lookup if user exists: %v", err)
-		return ctx.Status(fiber.StatusInternalServerError).SendString("Could not lookup if user exists")
+		logging.Info("Could not lookup if user exists", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusInternalServerError)
 	} else if len(res) > 0 {
+		//TODO - reconsider this, security-wise
+		logging.Debug("Registration attempt with a take username", []logging.LogProp{{"username", reqBody.Username}})
 		return ctx.Status(fiber.StatusConflict).SendString("Username already taken")
 	}
 	newUser := models.User{
@@ -57,8 +59,8 @@ func (c *RegistrationController) registerUser(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.userStore.CreateNewUser(newUser); err != nil {
-		fmt.Printf("Could not add new user: %v", err)
-		return ctx.Status(fiber.StatusInternalServerError).SendString("Could not add new user")
+		logging.Warning(err, "error on writing new user to DB", nil)
+		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 	return ctx.SendStatus(fiber.StatusCreated)
 }
