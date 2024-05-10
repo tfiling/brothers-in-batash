@@ -2,24 +2,21 @@ package main
 
 import (
 	"brothers_in_batash/internal/app/webserver/controllers"
-	"fmt"
+	"brothers_in_batash/internal/pkg/logging"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	fmt.Println("started WS")
+	logging.Info("started WS", nil)
 
 	app := fiber.New()
 	apiGroup := app.Group(controllers.APIRouteBasePath)
-	err := controllers.SetupRoutes(apiGroup)
-	if err != nil {
-		fmt.Printf("error setting up rooutes: %v", err)
-		return
+	if err := controllers.SetupRoutes(apiGroup); err != nil {
+		logging.Panic(err, "error setting up routes", nil)
 	}
 
-	err = app.Listen(":3000")
-	if err != nil {
-		fmt.Printf("Error starting server: %s\n", err)
+	if err := app.Listen(":3000"); err != nil {
+		logging.Error(err, "Error starting server", nil)
 	}
 }
