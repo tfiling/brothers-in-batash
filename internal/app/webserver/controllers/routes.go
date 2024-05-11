@@ -10,17 +10,14 @@ import (
 const (
 	APIRouteBasePath = "/api/v1"
 	RegisterRoute    = "/auth/register"
+	LoginRoute       = "/auth/login"
 )
 
 type Controller interface {
 	RegisterRoutes(router fiber.Router) error
 }
 
-func SetupRoutes(v1Router fiber.Router) error {
-	controllers, err := initControllers()
-	if err != nil {
-		return errors.Wrap(err, "failed to initialize controllers")
-	}
+func SetupRoutes(v1Router fiber.Router, controllers []Controller) error {
 	for _, controller := range controllers {
 		if err := controller.RegisterRoutes(v1Router); err != nil {
 			return errors.Wrap(err, "failed to register routes")
@@ -29,7 +26,7 @@ func SetupRoutes(v1Router fiber.Router) error {
 	return nil
 }
 
-func initControllers() (controllers []Controller, err error) {
+func InitControllers() (controllers []Controller, err error) {
 	userStore, err := store.NewUserStore()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize user store")

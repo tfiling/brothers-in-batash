@@ -5,10 +5,10 @@ import (
 	"brothers_in_batash/internal/pkg/logging"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
-	"errors"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,6 +25,7 @@ func NewRegistrationController(userStore store.IUserStore) (*RegistrationControl
 
 func (c *RegistrationController) RegisterRoutes(router fiber.Router) error {
 	router.Post(RegisterRoute, c.registerUser)
+	router.Post(LoginRoute, c.loginUser)
 	return nil
 }
 
@@ -49,7 +50,7 @@ func (c *RegistrationController) registerUser(ctx *fiber.Ctx) error {
 		logging.Info("Could not lookup if user exists", []logging.LogProp{{"error", err.Error()}})
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	} else if len(res) > 0 {
-		//TODO - reconsider this, security-wise
+		//TODO - reconsider this, security-wise. Allows attackers to look for users in a brute-force manner
 		logging.Debug("Registration attempt with a take username", []logging.LogProp{{"username", reqBody.Username}})
 		return ctx.Status(fiber.StatusConflict).SendString("Username already taken")
 	}
@@ -65,10 +66,49 @@ func (c *RegistrationController) registerUser(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusCreated)
 }
 
+func (c *RegistrationController) loginUser(ctx *fiber.Ctx) error {
+	reqBody := api.UserLoginReqBody{}
+	if err := ctx.BodyParser(&reqBody); err != nil {
+		logging.Info("Could not parse login request body", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+	if err := validator.New().Struct(reqBody); err != nil {
+		logging.Info("Login request body failed validation", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+	users, err := c.userStore.FindUserByUsername(reqBody.Username)
+	if err != nil {
+		logging.Warning(err, "Failed querying users from DB on login", nil)
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+	if len(users) == 0 {
+		logging.Trace("Login attempt with non existing username", nil)
+		//TODO - reconsider this, security-wise. Allows attackers to look for users in a brute-force manner.
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+	if correct, err := isCorrectPassword(reqBody.Password, users[0].HashedPassword); err != nil {
+		logging.Warning(err, "Failed checking provided password in login request", []logging.LogProp{{"username", reqBody.Username}})
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	} else if !correct {
+		logging.Trace("Login attempt with wrong password", []logging.LogProp{{"username", reqBody.Username}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+	logging.Trace("Successful login", []logging.LogProp{{"username", reqBody.Username}})
+	//TODO - send token and refresh token
+	return ctx.SendStatus(fiber.StatusOK)
+}
+
 func hashPassword(password string) ([]byte, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 	return hashedPassword, nil
+}
+
+func isCorrectPassword(passwordAttempted string, hashedPassword []byte) (bool, error) {
+	if err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(passwordAttempted)); err != nil {
+		return false, nil
+	}
+	return true, nil
 }
