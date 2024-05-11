@@ -3,6 +3,7 @@ package controllers_test
 import (
 	"brothers_in_batash/internal/app/webserver/api"
 	"brothers_in_batash/internal/app/webserver/controllers"
+	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
 	"brothers_in_batash/internal/pkg/test_utils"
 	"bytes"
@@ -13,7 +14,22 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type IUserStoreMock struct {
+	mock.Mock
+}
+
+func (m *IUserStoreMock) CreateNewUser(user models.User) error {
+	return m.Called(user).Error(0)
+}
+
+func (m *IUserStoreMock) FindUserByUsername(username string) ([]models.User, error) {
+	args := m.Called(username)
+	return args.Get(0).([]models.User), args.Error(1)
+}
 
 func TestRegistrationController_NewRegistrationController__error_on_nil_store(t *testing.T) {
 	res, err := controllers.NewRegistrationController(nil)
@@ -68,7 +84,7 @@ func TestRegistrationController_RegisterUser__sad_flows(t *testing.T) {
 			controller, err := controllers.NewRegistrationController(userStore)
 			assert.NoError(t, err)
 			assert.NotNil(t, controller)
-			err = controllers.SetupRoutes(app)
+			err = controllers.SetupRoutes(app, []controllers.Controller{controller})
 			assert.NoError(t, err)
 
 			req := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, testCase.body)
@@ -94,16 +110,16 @@ func TestRegistrationController_RegisterUser__user_already_exists(t *testing.T) 
 	controller, err := controllers.NewRegistrationController(userStore)
 	assert.NoError(t, err)
 	assert.NotNil(t, controller)
-	err = controllers.SetupRoutes(app)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
 	assert.NoError(t, err)
 
-	newUserBocy := api.UserRegistrationReqBody{
+	newUserBody := api.UserRegistrationReqBody{
 		Username: "user",
 		Password: "password",
 	}
-	req := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, test_utils.WrapStructWithReader(t, newUserBocy))
+	req := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, test_utils.WrapStructWithReader(t, newUserBody))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	secondReq := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, test_utils.WrapStructWithReader(t, newUserBocy))
+	secondReq := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, test_utils.WrapStructWithReader(t, newUserBody))
 	secondReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
@@ -125,14 +141,14 @@ func TestRegistrationController_RegisterUser__user_successfully_created(t *testi
 	controller, err := controllers.NewRegistrationController(userStore)
 	assert.NoError(t, err)
 	assert.NotNil(t, controller)
-	err = controllers.SetupRoutes(app)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
 	assert.NoError(t, err)
 
-	newUserBocy := api.UserRegistrationReqBody{
+	newUserBody := api.UserRegistrationReqBody{
 		Username: "user",
 		Password: "password",
 	}
-	req := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, test_utils.WrapStructWithReader(t, newUserBocy))
+	req := httptest.NewRequest(fiber.MethodPost, controllers.RegisterRoute, test_utils.WrapStructWithReader(t, newUserBody))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
@@ -141,4 +157,157 @@ func TestRegistrationController_RegisterUser__user_successfully_created(t *testi
 	//Assert
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusCreated, resp.StatusCode)
+}
+
+func TestRegistrationController_LoginUser__sad_flows(t *testing.T) {
+	testCases := []struct {
+		name               string
+		body               io.Reader
+		expectedStatusCode int
+	}{
+		{
+			"empty body",
+			bytes.NewReader([]byte{}),
+			http.StatusBadRequest,
+		},
+		{
+			"invalid username",
+			test_utils.WrapStructWithReader(t, api.UserLoginReqBody{
+				Password: "password",
+			}),
+			http.StatusBadRequest,
+		},
+		{
+			"invalid password",
+			test_utils.WrapStructWithReader(t, api.UserLoginReqBody{
+				Username: "user",
+			}),
+			http.StatusBadRequest,
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			//Arrange
+			app := fiber.New()
+
+			userStoreMock := &IUserStoreMock{}
+			controller, err := controllers.NewRegistrationController(userStoreMock)
+			assert.NoError(t, err)
+			assert.NotNil(t, controller)
+			err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+			assert.NoError(t, err)
+
+			req := httptest.NewRequest(fiber.MethodPost, controllers.LoginRoute, testCase.body)
+			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+			//Act
+			resp, err := app.Test(req)
+
+			//Assert
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expectedStatusCode, resp.StatusCode)
+			userStoreMock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestRegistrationController_LoginUser__non_existing_user(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	username := "user"
+	userStoreMock := &IUserStoreMock{}
+	userStoreMock.On("FindUserByUsername", username).Return([]models.User{}, nil)
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	loginBody := api.UserLoginReqBody{
+		Username: username,
+		Password: "password",
+	}
+	req := httptest.NewRequest(fiber.MethodPost, controllers.LoginRoute, test_utils.WrapStructWithReader(t, loginBody))
+	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(req)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_LoginUser__wrong_password(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	username := "user"
+	userStoreMock := &IUserStoreMock{}
+	userStoreMock.On("FindUserByUsername", username).Return([]models.User{
+		{
+			Username:       username,
+			HashedPassword: []byte("you will never steal my secrets!"),
+		},
+	}, nil)
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	loginBody := api.UserLoginReqBody{
+		Username: username,
+		Password: "wrong_password",
+	}
+	loginReq := httptest.NewRequest(fiber.MethodPost, controllers.LoginRoute, test_utils.WrapStructWithReader(t, loginBody))
+	loginReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(loginReq)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_LoginUser__success(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	username := "user"
+	pass := "password"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
+	userStoreMock := &IUserStoreMock{}
+	userStoreMock.On("FindUserByUsername", username).Return([]models.User{
+		{
+			Username:       username,
+			HashedPassword: hashedPassword,
+		},
+	}, nil)
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	loginBody := api.UserLoginReqBody{
+		Username: username,
+		Password: pass,
+	}
+	loginReq := httptest.NewRequest(fiber.MethodPost, controllers.LoginRoute, test_utils.WrapStructWithReader(t, loginBody))
+	loginReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(loginReq)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
 }

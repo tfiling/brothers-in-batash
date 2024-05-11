@@ -12,7 +12,11 @@ func main() {
 
 	app := fiber.New()
 	apiGroup := app.Group(controllers.APIRouteBasePath)
-	if err := controllers.SetupRoutes(apiGroup); err != nil {
+	APIControllers, err := controllers.InitControllers()
+	if err != nil {
+		logging.Panic(err, "error setting up controllers", nil)
+	}
+	if err := controllers.SetupRoutes(apiGroup, APIControllers); err != nil {
 		logging.Panic(err, "error setting up routes", nil)
 	}
 
