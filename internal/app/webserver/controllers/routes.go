@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	APIRouteBasePath = "/api/v1"
-	RegisterRoute    = "/auth/register"
-	LoginRoute       = "/auth/login"
+	APIRouteBasePath  = "/api/v1"
+	RegisterRoute     = "/auth/register"
+	LoginRoute        = "/auth/login"
+	RefreshTokenRoute = "/auth/refresh"
 )
 
 type Controller interface {

@@ -3,11 +3,14 @@ package controllers
 import (
 	"brothers_in_batash/internal/app/webserver/api"
 	"brothers_in_batash/internal/pkg/logging"
+	jwtmw "brothers_in_batash/internal/pkg/middleware/jwt"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	jtoken "github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -26,6 +29,7 @@ func NewRegistrationController(userStore store.IUserStore) (*RegistrationControl
 func (c *RegistrationController) RegisterRoutes(router fiber.Router) error {
 	router.Post(RegisterRoute, c.registerUser)
 	router.Post(LoginRoute, c.loginUser)
+	router.Post(RefreshTokenRoute, c.refreshToken)
 	return nil
 }
 
@@ -94,8 +98,61 @@ func (c *RegistrationController) loginUser(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 	logging.Trace("Successful login", []logging.LogProp{{"username", reqBody.Username}})
-	//TODO - send token and refresh token
-	return ctx.SendStatus(fiber.StatusOK)
+	token, err := jwtmw.GenerateToken(users[0].Username, jwtmw.TokenExpiration)
+	if err != nil {
+		logging.Warning(err, "Failed generating JWT token", nil)
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+	refreshToken, err := jwtmw.GenerateToken(users[0].Username, jwtmw.RefreshTokenExpiration)
+	if err != nil {
+		logging.Warning(err, "Failed generating refresh token", nil)
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+	return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: token, RefreshToken: refreshToken})
+}
+
+func (c *RegistrationController) refreshToken(ctx *fiber.Ctx) error {
+	reqBody := api.RefreshTokenReqBody{}
+	if err := ctx.BodyParser(&reqBody); err != nil {
+		logging.Debug("Could not parse refresh token request body", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+	if err := validator.New().Struct(reqBody); err != nil {
+		logging.Debug("Refresh token request body failed validation", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	token, err := jtoken.Parse(reqBody.RefreshToken, func(token *jtoken.Token) (interface{}, error) {
+		return []byte(jwtmw.SigningSecret), nil
+	})
+	if err != nil {
+		logging.Trace("Invalid refresh token", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	claims, ok := token.Claims.(jtoken.MapClaims)
+	if !ok || !token.Valid {
+		logging.Debug("Invalid refresh token claims", []logging.LogProp{
+			{"claims", fmt.Sprint(claims)},
+			{"isMapClaims", fmt.Sprint(ok)},
+			{"isMapOrIsValid", fmt.Sprint(!ok || !token.Valid)},
+		})
+		return ctx.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	username, ok := claims[jwtmw.IDClaimField].(string)
+	if !ok {
+		logging.Debug("Invalid refresh token claims - missing user ID", nil)
+		return ctx.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	newToken, err := jwtmw.GenerateToken(username, jwtmw.TokenExpiration)
+	if err != nil {
+		logging.Warning(err, "could not generate JWT token", nil)
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: newToken, RefreshToken: reqBody.RefreshToken})
 }
 
 func hashPassword(password string) ([]byte, error) {

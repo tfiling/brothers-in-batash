@@ -3,16 +3,20 @@ package controllers_test
 import (
 	"brothers_in_batash/internal/app/webserver/api"
 	"brothers_in_batash/internal/app/webserver/controllers"
+	jwtmw "brothers_in_batash/internal/pkg/middleware/jwt"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
 	"brothers_in_batash/internal/pkg/test_utils"
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	jtoken "github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
@@ -310,4 +314,126 @@ func TestRegistrationController_LoginUser__success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_RefreshToken__sad_flows(t *testing.T) {
+	testCases := []struct {
+		name               string
+		body               io.Reader
+		expectedStatusCode int
+	}{
+		{
+			"empty body",
+			bytes.NewReader([]byte{}),
+			http.StatusBadRequest,
+		},
+		{
+			"invalid request body",
+			test_utils.WrapStructWithReader(t, api.RefreshTokenReqBody{}),
+			http.StatusBadRequest,
+		},
+		{
+			"invalid refresh token",
+			test_utils.WrapStructWithReader(t, api.RefreshTokenReqBody{
+				RefreshToken: "invalid_token",
+			}),
+			http.StatusUnauthorized,
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			//Arrange
+			app := fiber.New()
+
+			userStoreMock := &IUserStoreMock{}
+			controller, err := controllers.NewRegistrationController(userStoreMock)
+			assert.NoError(t, err)
+			assert.NotNil(t, controller)
+			err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+			assert.NoError(t, err)
+
+			req := httptest.NewRequest(fiber.MethodPost, controllers.RefreshTokenRoute, testCase.body)
+			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+			//Act
+			resp, err := app.Test(req)
+
+			//Assert
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expectedStatusCode, resp.StatusCode)
+			userStoreMock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestRegistrationController_RefreshToken__wrong_claims_type(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	username := "user"
+	wrongClaims := jtoken.MapClaims{
+		"myCustomWrongUserID":     username,
+		"myCustomWrongExpiration": time.Now().Add(time.Hour).Unix(),
+		"myCustomWrongRole":       "admin",
+	}
+	token := jtoken.NewWithClaims(jtoken.SigningMethodHS256, wrongClaims)
+	signedToken, err := token.SignedString([]byte(jwtmw.SigningSecret))
+	assert.NoError(t, err)
+
+	userStoreMock := &IUserStoreMock{}
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	refreshTokenBody := api.RefreshTokenReqBody{
+		RefreshToken: signedToken,
+	}
+	refreshTokenReq := httptest.NewRequest(fiber.MethodPost, controllers.RefreshTokenRoute, test_utils.WrapStructWithReader(t, refreshTokenBody))
+	refreshTokenReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(refreshTokenReq)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_RefreshToken__success(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	username := "user"
+	refreshToken, err := jwtmw.GenerateToken(username, jwtmw.RefreshTokenExpiration)
+	assert.NoError(t, err)
+
+	userStoreMock := &IUserStoreMock{}
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	refreshTokenBody := api.RefreshTokenReqBody{
+		RefreshToken: refreshToken,
+	}
+	refreshTokenReq := httptest.NewRequest(fiber.MethodPost, controllers.RefreshTokenRoute, test_utils.WrapStructWithReader(t, refreshTokenBody))
+	refreshTokenReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(refreshTokenReq)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+
+	var respBody api.UserLoginRespBody
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, respBody.Token)
+	assert.Equal(t, refreshToken, respBody.RefreshToken)
 }
