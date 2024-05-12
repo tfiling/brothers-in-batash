@@ -7,5 +7,14 @@ type UserRegistrationReqBody struct {
 
 type UserLoginReqBody struct {
 	Username string `json:"username" validate:"required"`
-	Password string `json:"hashedPassword" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+type UserLoginRespBody struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type RefreshTokenReqBody struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
 }
