@@ -4,17 +4,24 @@ DIRECTORY="/home/galt/code/brothers_in_batash"
 TEMP_FILE=$(mktemp)
 
 # Define exclusions: List directories and files to exclude
-EXCLUDE_DIRS=(".git" "deploy" "cmd" ".idea")
-EXCLUDE_FILES=("go.mod" "go.sum" "Dockerfile" "makefile" ".gitignore" "README.md")
+TREE_EXCLUDE_DIRS=(".git" ".idea" "node_modules" ".venv" "test" "e2e" "docs" "ops" ".ci" ".github")
+EXCLUDE_DIRS=(".git" "deploy" "cmd" ".idea" "node_modules" ".venv" "test" "e2e" "docs" "ops" ".ci" ".github")
+EXCLUDE_FILES=("go.mod" "go.sum" "Dockerfile" "makefile" ".gitignore" "README.md" "*.png" "*.ico" "package-lock.json")
 
 if [ ! -d "$DIRECTORY" ]; then
   echo "$DIRECTORY does not exist."
   exit 1
 fi
 
-tree "$DIRECTORY" > "$TEMP_FILE"
+# Generate the exclude pattern for tree command
+EXCLUDE_PATTERN=""
+for EXCLUDE_DIR in "${TREE_EXCLUDE_DIRS[@]}"; do
+    EXCLUDE_PATTERN+="-I $EXCLUDE_DIR "
+done
 
-cd "$DIRECTORY"
+tree "$DIRECTORY" $EXCLUDE_PATTERN > "$TEMP_FILE"
+
+cd "$DIRECTORY" || exit 1
 
 FIND_CMD="find . -type d"
 for EXCLUDE_DIR in "${EXCLUDE_DIRS[@]}"; do
@@ -40,4 +47,4 @@ xclip -selection clipboard < "$TEMP_FILE"
 
 rm "$TEMP_FILE"
 
-cd - > /dev/null
+cd - > /dev/null || exit 1
