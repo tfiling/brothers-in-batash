@@ -26,6 +26,9 @@ func TestInMemSoldierStore_CreateNewSoldier__success(t *testing.T) {
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
+		Roles: []models.SoldierRole{
+			{ID: "role1", Name: "Role1"},
+		},
 	}
 
 	//Act
@@ -46,6 +49,9 @@ func TestInMemSoldierStore_CreateNewSoldier__duplicate_id(t *testing.T) {
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
+		Roles: []models.SoldierRole{
+			{ID: "role1", Name: "Role1"},
+		},
 	}
 
 	err = soldierStore.CreateNewSoldier(soldier)
@@ -69,6 +75,7 @@ func TestInMemSoldierStore_CreateNewSoldier__invalid_soldier(t *testing.T) {
 		LastName:       "",
 		PersonalNumber: "",
 		Position:       -1,
+		Roles:          []models.SoldierRole{},
 	}
 
 	//Act
@@ -89,6 +96,9 @@ func TestInMemSoldierStore_FindSoldierByID__success(t *testing.T) {
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
+		Roles: []models.SoldierRole{
+			{ID: "role1", Name: "Role1"},
+		},
 	}
 
 	err = soldierStore.CreateNewSoldier(soldier)
@@ -120,8 +130,26 @@ func TestInMemSoldierStore_FindAllSoldiers__success(t *testing.T) {
 	require.NoError(t, err)
 
 	soldiers := []models.Soldier{
-		{ID: "1", FirstName: "John", LastName: "Doe", PersonalNumber: "1234567", Position: models.RegularSoldierPosition},
-		{ID: "2", FirstName: "Jane", LastName: "Smith", PersonalNumber: "7654321", Position: models.SquadCommanderPosition},
+		{
+			ID:             "1",
+			FirstName:      "John",
+			LastName:       "Doe",
+			PersonalNumber: "1234567",
+			Position:       models.RegularSoldierPosition,
+			Roles: []models.SoldierRole{
+				{ID: "role1", Name: "Role1"},
+			},
+		},
+		{
+			ID:             "2",
+			FirstName:      "Jane",
+			LastName:       "Smith",
+			PersonalNumber: "7654321",
+			Position:       models.SquadCommanderPosition,
+			Roles: []models.SoldierRole{
+				{ID: "role2", Name: "Role2"},
+			},
+		},
 	}
 
 	for _, soldier := range soldiers {
@@ -149,6 +177,9 @@ func TestInMemSoldierStore_UpdateSoldier__success(t *testing.T) {
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
+		Roles: []models.SoldierRole{
+			{ID: "role1", Name: "Role1"},
+		},
 	}
 
 	err = soldierStore.CreateNewSoldier(soldier)
@@ -191,6 +222,9 @@ func TestInMemSoldierStore_UpdateSoldier__invalid_data(t *testing.T) {
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
+		Roles: []models.SoldierRole{
+			{ID: "role1", Name: "Role1"},
+		},
 	}
 
 	err = soldierStore.CreateNewSoldier(soldier)
@@ -218,6 +252,9 @@ func TestInMemSoldierStore_DeleteSoldier__success(t *testing.T) {
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
+		Roles: []models.SoldierRole{
+			{ID: "role1", Name: "Role1"},
+		},
 	}
 
 	err = soldierStore.CreateNewSoldier(soldier)
