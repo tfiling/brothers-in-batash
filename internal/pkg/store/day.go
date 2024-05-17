@@ -10,7 +10,9 @@ import (
 type IDayStore interface {
 	CreateNewDaySchedule(day models.DaySchedule) error
 	FindDaySchedule(date time.Time) ([]models.DaySchedule, error)
+	FindAllDaySchedules() ([]models.DaySchedule, error)
 	UpdateDaySchedule(day models.DaySchedule) error
+	DeleteDaySchedule(date time.Time) error
 }
 
 type InMemDaySchedStore struct {
@@ -46,6 +48,23 @@ func (s *InMemDaySchedStore) UpdateDaySchedule(day models.DaySchedule) error {
 		return errors.Wrap(err, "could not update day schedule with an invalid instance")
 	}
 	s.days[normalizeDate(day.Date)] = day
+	return nil
+}
+
+func (s *InMemDaySchedStore) FindAllDaySchedules() ([]models.DaySchedule, error) {
+	daySchedules := make([]models.DaySchedule, 0, len(s.days))
+	for _, daySchedule := range s.days {
+		daySchedules = append(daySchedules, daySchedule)
+	}
+	return daySchedules, nil
+}
+
+func (s *InMemDaySchedStore) DeleteDaySchedule(date time.Time) error {
+	dateStr := normalizeDate(date)
+	if _, exists := s.days[dateStr]; !exists {
+		return errors.New("day schedule does not exist")
+	}
+	delete(s.days, dateStr)
 	return nil
 }
 
