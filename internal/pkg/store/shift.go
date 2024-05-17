@@ -8,7 +8,7 @@ import (
 
 type IShiftStore interface {
 	CreateNewShift(shift models.Shift) error
-	FindShiftByID(id string) (models.Shift, error)
+	FindShiftByID(id string) ([]models.Shift, error)
 	FindAllShifts() ([]models.Shift, error)
 	UpdateShift(shift models.Shift) error
 	DeleteShift(id string) error
@@ -33,11 +33,11 @@ func (s *InMemShiftStore) CreateNewShift(shift models.Shift) error {
 	return nil
 }
 
-func (s *InMemShiftStore) FindShiftByID(id string) (models.Shift, error) {
+func (s *InMemShiftStore) FindShiftByID(id string) ([]models.Shift, error) {
 	if shift, exists := s.shifts[id]; !exists {
-		return models.Shift{}, errors.New("shift not found")
+		return []models.Shift{}, nil
 	} else {
-		return shift, nil
+		return []models.Shift{shift}, nil
 	}
 }
 
