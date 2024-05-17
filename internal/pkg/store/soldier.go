@@ -9,7 +9,7 @@ import (
 
 type ISoldierStore interface {
 	CreateNewSoldier(soldier models.Soldier) error
-	FindSoldierByID(id string) (models.Soldier, error)
+	FindSoldierByID(id string) ([]models.Soldier, error)
 	FindAllSoldiers() ([]models.Soldier, error)
 	UpdateSoldier(soldier models.Soldier) error
 	DeleteSoldier(id string) error
@@ -34,11 +34,11 @@ func (s *InMemSoldierStore) CreateNewSoldier(soldier models.Soldier) error {
 	return nil
 }
 
-func (s *InMemSoldierStore) FindSoldierByID(id string) (models.Soldier, error) {
+func (s *InMemSoldierStore) FindSoldierByID(id string) ([]models.Soldier, error) {
 	if soldier, exists := s.soldiers[id]; !exists {
-		return models.Soldier{}, errors.New("soldier not found")
+		return []models.Soldier{}, nil
 	} else {
-		return soldier, nil
+		return []models.Soldier{soldier}, nil
 	}
 }
 

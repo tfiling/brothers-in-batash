@@ -105,11 +105,12 @@ func TestInMemSoldierStore_FindSoldierByID__success(t *testing.T) {
 	require.NoError(t, err)
 
 	//Act
-	foundSoldier, err := soldierStore.FindSoldierByID("123")
+	foundSoldiers, err := soldierStore.FindSoldierByID("123")
 
 	//Assert
 	assert.NoError(t, err)
-	assert.Equal(t, soldier, foundSoldier)
+	assert.Len(t, foundSoldiers, 1)
+	assert.Equal(t, soldier, foundSoldiers[0])
 }
 
 func TestInMemSoldierStore_FindSoldierByID__not_found(t *testing.T) {
@@ -118,10 +119,11 @@ func TestInMemSoldierStore_FindSoldierByID__not_found(t *testing.T) {
 	require.NoError(t, err)
 
 	//Act
-	_, err = soldierStore.FindSoldierByID("456")
+	foundSoldiers, err := soldierStore.FindSoldierByID("456")
 
 	//Assert
-	assert.Error(t, err)
+	assert.NoError(t, err)
+	assert.Len(t, foundSoldiers, 0)
 }
 
 func TestInMemSoldierStore_FindAllSoldiers__success(t *testing.T) {
@@ -193,9 +195,10 @@ func TestInMemSoldierStore_UpdateSoldier__success(t *testing.T) {
 
 	//Assert
 	assert.NoError(t, err)
-	foundSoldier, err := soldierStore.FindSoldierByID(soldierID)
+	foundSoldiers, err := soldierStore.FindSoldierByID(soldierID)
 	assert.NoError(t, err)
-	assert.Equal(t, updatedSoldier, foundSoldier)
+	assert.Len(t, foundSoldiers, 1)
+	assert.Equal(t, updatedSoldier, foundSoldiers[0])
 }
 
 func TestInMemSoldierStore_UpdateSoldier__not_found(t *testing.T) {
@@ -265,8 +268,9 @@ func TestInMemSoldierStore_DeleteSoldier__success(t *testing.T) {
 
 	//Assert
 	assert.NoError(t, err)
-	_, err = soldierStore.FindSoldierByID(soldierID)
-	assert.Error(t, err)
+	foundSoldiers, err := soldierStore.FindSoldierByID(soldierID)
+	assert.NoError(t, err)
+	assert.Len(t, foundSoldiers, 0)
 }
 
 func TestInMemSoldierStore_DeleteSoldier__not_found(t *testing.T) {
