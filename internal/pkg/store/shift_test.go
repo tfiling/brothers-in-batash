@@ -16,6 +16,10 @@ var (
 		LastName:       "Doe",
 		PersonalNumber: "1234567",
 		Position:       models.SquadCommanderPosition,
+		Roles: []models.SoldierRole{{
+			ID:   "1",
+			Name: "Commander",
+		}},
 	}
 	testStartTime = models.TimeOfDay{
 		Hour:   6,
@@ -114,11 +118,12 @@ func TestInMemShiftStore_FindShiftByID__success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Act
-	foundShift, err := shiftStore.FindShiftByID("123")
+	foundShifts, err := shiftStore.FindShiftByID("123")
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Equal(t, shift, foundShift)
+	assert.Len(t, foundShifts, 1)
+	assert.Equal(t, shift, foundShifts[0])
 }
 
 func TestInMemShiftStore_FindShiftByID__not_found(t *testing.T) {
@@ -127,10 +132,11 @@ func TestInMemShiftStore_FindShiftByID__not_found(t *testing.T) {
 	require.NoError(t, err)
 
 	// Act
-	_, err = shiftStore.FindShiftByID("456")
+	foundShifts, err := shiftStore.FindShiftByID("456")
 
 	// Assert
-	assert.Error(t, err)
+	assert.NoError(t, err)
+	assert.Len(t, foundShifts, 0)
 }
 
 func TestInMemShiftStore_FindAllShifts__success(t *testing.T) {
@@ -196,9 +202,10 @@ func TestInMemShiftStore_UpdateShift__success(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	foundShift, err := shiftStore.FindShiftByID(shiftID)
+	foundShifts, err := shiftStore.FindShiftByID(shiftID)
 	assert.NoError(t, err)
-	assert.Equal(t, updatedShift, foundShift)
+	assert.Len(t, foundShifts, 1)
+	assert.Equal(t, updatedShift, foundShifts[0])
 }
 
 func TestInMemShiftStore_UpdateShift__not_found(t *testing.T) {
@@ -264,8 +271,9 @@ func TestInMemShiftStore_DeleteShift__success(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	_, err = shiftStore.FindShiftByID(shiftID)
-	assert.Error(t, err)
+	foundShifts, err := shiftStore.FindShiftByID(shiftID)
+	assert.NoError(t, err)
+	assert.Len(t, foundShifts, 0)
 }
 
 func TestInMemShiftStore_DeleteShift__not_found(t *testing.T) {
