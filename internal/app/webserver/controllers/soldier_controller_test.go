@@ -17,7 +17,16 @@ import (
 
 func TestSoldierController_NewSoldierController__error_on_nil_store(t *testing.T) {
 	// Act
-	controller, err := controllers.NewSoldierController(nil)
+	controller, err := controllers.NewSoldierController(nil, test_utils.AlwaysAllowedJWTMiddleware)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, controller)
+}
+
+func TestSoldierController_NewSoldierController__error_on_nil_auth_middleware(t *testing.T) {
+	// Act
+	controller, err := controllers.NewSoldierController(&mocks.MockISoldierStore{}, nil)
 
 	// Assert
 	assert.Error(t, err)
@@ -29,7 +38,7 @@ func TestSoldierController_NewSoldierController__success(t *testing.T) {
 	soldierStore := &mocks.MockISoldierStore{}
 
 	// Act
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 
 	// Assert
 	assert.NoError(t, err)
@@ -40,7 +49,7 @@ func TestSoldierController_CreateSoldier__invalid_request_body(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -60,7 +69,7 @@ func TestSoldierController_CreateSoldier__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -82,7 +91,7 @@ func TestSoldierController_GetSoldier__not_found(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -103,7 +112,7 @@ func TestSoldierController_GetSoldier__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -129,7 +138,7 @@ func TestSoldierController_GetAllSoldiers__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -157,7 +166,7 @@ func TestSoldierController_UpdateSoldier__invalid_request_body(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -178,7 +187,7 @@ func TestSoldierController_UpdateSoldier__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -201,7 +210,7 @@ func TestSoldierController_DeleteSoldier__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	soldierStore := &mocks.MockISoldierStore{}
-	controller, err := controllers.NewSoldierController(soldierStore)
+	controller, err := controllers.NewSoldierController(soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
