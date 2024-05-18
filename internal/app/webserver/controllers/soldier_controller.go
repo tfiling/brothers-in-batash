@@ -10,14 +10,18 @@ import (
 )
 
 type SoldierController struct {
-	soldierStore store.ISoldierStore
+	soldierStore   store.ISoldierStore
+	authMiddleware fiber.Handler
 }
 
-func NewSoldierController(soldierStore store.ISoldierStore) (*SoldierController, error) {
+func NewSoldierController(soldierStore store.ISoldierStore, authMiddleware fiber.Handler) (*SoldierController, error) {
 	if soldierStore == nil {
 		return nil, errors.New("soldierStore is nil")
 	}
-	return &SoldierController{soldierStore: soldierStore}, nil
+	if authMiddleware == nil {
+		return nil, errors.New("authMiddleware is nil")
+	}
+	return &SoldierController{soldierStore: soldierStore, authMiddleware: authMiddleware}, nil
 }
 
 func (c *SoldierController) RegisterRoutes(router fiber.Router) error {
