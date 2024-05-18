@@ -48,7 +48,20 @@ func TestShiftController_NewShiftController__error_on_nil_store(t *testing.T) {
 	var shiftStore store.IShiftStore
 
 	// Act
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, controller)
+}
+
+func TestShiftController_NewShiftController__error_on_nil_middleware(t *testing.T) {
+	// Arrange
+	shiftStore, err := store.NewShiftStore()
+	require.NoError(t, err)
+
+	// Act
+	controller, err := controllers.NewShiftController(shiftStore, nil)
 
 	// Assert
 	assert.Error(t, err)
@@ -61,7 +74,7 @@ func TestShiftController_NewShiftController__success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Act
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 
 	// Assert
 	assert.NoError(t, err)
@@ -73,7 +86,7 @@ func TestShiftController_CreateShift__invalid_request_body(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -93,7 +106,7 @@ func TestShiftController_CreateShift__success(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -113,7 +126,7 @@ func TestShiftController_GetShift__not_found(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -132,7 +145,7 @@ func TestShiftController_GetShift__success(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -157,7 +170,7 @@ func TestShiftController_GetAllShifts__success(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -187,7 +200,7 @@ func TestShiftController_UpdateShift__invalid_request_body(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -208,7 +221,7 @@ func TestShiftController_UpdateShift__not_found(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -229,7 +242,7 @@ func TestShiftController_UpdateShift__success(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -258,7 +271,7 @@ func TestShiftController_DeleteShift__not_found(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -277,7 +290,7 @@ func TestShiftController_DeleteShift__success(t *testing.T) {
 	app := fiber.New()
 	shiftStore, err := store.NewShiftStore()
 	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore)
+	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
