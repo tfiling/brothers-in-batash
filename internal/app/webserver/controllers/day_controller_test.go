@@ -19,7 +19,16 @@ import (
 
 func TestDayScheduleController_NewDayScheduleController__error_on_nil_store(t *testing.T) {
 	// Act
-	controller, err := controllers.NewDayScheduleController(nil)
+	controller, err := controllers.NewDayScheduleController(nil, test_utils.AlwaysAllowedJWTMiddleware)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, controller)
+}
+
+func TestDayScheduleController_NewDayScheduleController__error_on_nil_auth_middleware(t *testing.T) {
+	// Act
+	controller, err := controllers.NewDayScheduleController(&mocks.MockIDayStore{}, nil)
 
 	// Assert
 	assert.Error(t, err)
@@ -31,7 +40,7 @@ func TestDayScheduleController_NewDayScheduleController__success(t *testing.T) {
 	dayStore := &mocks.MockIDayStore{}
 
 	// Act
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 
 	// Assert
 	assert.NoError(t, err)
@@ -42,7 +51,7 @@ func TestDayScheduleController_CreateDaySchedule__invalid_request_body(t *testin
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -61,7 +70,7 @@ func TestDayScheduleController_CreateDaySchedule__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -88,7 +97,7 @@ func TestDayScheduleController_GetDaySchedule__invalid_date_format(t *testing.T)
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -106,7 +115,7 @@ func TestDayScheduleController_GetDaySchedule__not_found(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -127,7 +136,7 @@ func TestDayScheduleController_GetDaySchedule__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -158,7 +167,7 @@ func TestDayScheduleController_GetAllDaySchedules__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -196,7 +205,7 @@ func TestDayScheduleController_UpdateDaySchedule__invalid_request_body(t *testin
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -216,7 +225,7 @@ func TestDayScheduleController_UpdateDaySchedule__invalid_date_format(t *testing
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -235,7 +244,7 @@ func TestDayScheduleController_UpdateDaySchedule__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -263,7 +272,7 @@ func TestDayScheduleController_DeleteDaySchedule__invalid_date_format(t *testing
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -281,7 +290,7 @@ func TestDayScheduleController_DeleteDaySchedule__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
 	dayStore := &mocks.MockIDayStore{}
-	controller, err := controllers.NewDayScheduleController(dayStore)
+	controller, err := controllers.NewDayScheduleController(dayStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)

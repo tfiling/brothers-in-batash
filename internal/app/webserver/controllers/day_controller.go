@@ -11,22 +11,26 @@ import (
 )
 
 type DayScheduleController struct {
-	dayStore store.IDayStore
+	dayStore       store.IDayStore
+	authMiddleware fiber.Handler
 }
 
-func NewDayScheduleController(dayStore store.IDayStore) (*DayScheduleController, error) {
+func NewDayScheduleController(dayStore store.IDayStore, authMiddleware fiber.Handler) (*DayScheduleController, error) {
 	if dayStore == nil {
 		return nil, errors.New("dayStore is nil")
 	}
-	return &DayScheduleController{dayStore: dayStore}, nil
+	if authMiddleware == nil {
+		return nil, errors.New("authMiddleware is nil")
+	}
+	return &DayScheduleController{dayStore: dayStore, authMiddleware: authMiddleware}, nil
 }
 
 func (c *DayScheduleController) RegisterRoutes(router fiber.Router) error {
-	router.Post(CreateDayScheduleRoute, c.createDaySchedule)
-	router.Get(GetDayScheduleRoute, c.getDaySchedule)
-	router.Get(GetAllDaySchedulesRoute, c.getAllDaySchedules)
-	router.Put(UpdateDayScheduleRoute, c.updateDaySchedule)
-	router.Delete(DeleteDayScheduleRoute, c.deleteDaySchedule)
+	router.Post(CreateDayScheduleRoute, c.authMiddleware, c.createDaySchedule)
+	router.Get(GetDayScheduleRoute, c.authMiddleware, c.getDaySchedule)
+	router.Get(GetAllDaySchedulesRoute, c.authMiddleware, c.getAllDaySchedules)
+	router.Put(UpdateDayScheduleRoute, c.authMiddleware, c.updateDaySchedule)
+	router.Delete(DeleteDayScheduleRoute, c.authMiddleware, c.deleteDaySchedule)
 	return nil
 }
 
