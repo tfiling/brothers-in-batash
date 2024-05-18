@@ -10,22 +10,26 @@ import (
 )
 
 type ShiftController struct {
-	shiftStore store.IShiftStore
+	shiftStore     store.IShiftStore
+	authMiddleware fiber.Handler
 }
 
-func NewShiftController(shiftStore store.IShiftStore) (*ShiftController, error) {
+func NewShiftController(shiftStore store.IShiftStore, authMiddleware fiber.Handler) (*ShiftController, error) {
 	if shiftStore == nil {
 		return nil, errors.New("shiftStore is nil")
 	}
-	return &ShiftController{shiftStore: shiftStore}, nil
+	if authMiddleware == nil {
+		return nil, errors.New("authMiddleware is nil")
+	}
+	return &ShiftController{shiftStore: shiftStore, authMiddleware: authMiddleware}, nil
 }
 
 func (c *ShiftController) RegisterRoutes(router fiber.Router) error {
-	router.Post(CreateShiftRoute, c.createShift)
-	router.Get(GetShiftRoute, c.getShift)
-	router.Get(GetAllShiftsRoute, c.getAllShifts)
-	router.Put(UpdateShiftRoute, c.updateShift)
-	router.Delete(DeleteShiftRoute, c.deleteShift)
+	router.Post(CreateShiftRoute, c.authMiddleware, c.createShift)
+	router.Get(GetShiftRoute, c.authMiddleware, c.getShift)
+	router.Get(GetAllShiftsRoute, c.authMiddleware, c.getAllShifts)
+	router.Put(UpdateShiftRoute, c.authMiddleware, c.updateShift)
+	router.Delete(DeleteShiftRoute, c.authMiddleware, c.deleteShift)
 	return nil
 }
 
