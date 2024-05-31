@@ -33,6 +33,12 @@ const (
 	GetAllSoldiersRoute = "/soldiers"
 	UpdateSoldierRoute  = "/soldiers/:id"
 	DeleteSoldierRoute  = "/soldiers/:id"
+
+	CreateShiftTemplateRoute  = "/shift-templates"
+	GetShiftTemplateRoute     = "/shift-templates/:id"
+	GetAllShiftTemplatesRoute = "/shift-templates"
+	UpdateShiftTemplateRoute  = "/shift-templates/:id"
+	DeleteShiftTemplateRoute  = "/shift-templates/:id"
 )
 
 type Controller interface {
@@ -40,10 +46,11 @@ type Controller interface {
 }
 
 type storeInstancesContainer struct {
-	dayStore     store.IDayStore
-	shiftStore   store.IShiftStore
-	soldierStore store.ISoldierStore
-	userStore    store.IUserStore
+	dayStore           store.IDayStore
+	shiftStore         store.IShiftStore
+	soldierStore       store.ISoldierStore
+	userStore          store.IUserStore
+	ShiftTemplateStore store.IShiftTemplateStore
 }
 
 func SetupRoutes(v1Router fiber.Router, controllers []Controller) error {
@@ -83,9 +90,15 @@ func InitControllers() (controllers []Controller, err error) {
 
 	soldierController, err := NewSoldierController(storeInstances.soldierStore, authMiddleware)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize shift controller")
+		return nil, errors.Wrap(err, "failed to initialize soldier controller")
 	}
 	controllers = append(controllers, soldierController)
+
+	shiftTemplateController, err := NewShiftTemplateController(storeInstances.ShiftTemplateStore, authMiddleware)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize shift template controller")
+	}
+	controllers = append(controllers, shiftTemplateController)
 
 	return
 }
@@ -110,10 +123,17 @@ func initStoreInstances() (storeInstancesContainer, error) {
 	if err != nil {
 		return storeInstancesContainer{}, errors.Wrap(err, "failed to initialize soldier store")
 	}
+
+	shiftTemplateStore, err := store.NewShiftTemplateStore()
+	if err != nil {
+		return storeInstancesContainer{}, errors.Wrap(err, "failed to initialize shift template store")
+	}
+
 	return storeInstancesContainer{
-		dayStore:     daySchedStore,
-		shiftStore:   shiftStore,
-		soldierStore: soldierStore,
-		userStore:    userStore,
+		dayStore:           daySchedStore,
+		shiftStore:         shiftStore,
+		soldierStore:       soldierStore,
+		userStore:          userStore,
+		ShiftTemplateStore: shiftTemplateStore,
 	}, nil
 }
