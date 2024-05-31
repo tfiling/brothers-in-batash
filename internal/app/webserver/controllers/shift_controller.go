@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// TODO - Implement a concrete type for API requests and responses bodies
+
 type ShiftController struct {
 	shiftStore     store.IShiftStore
 	authMiddleware fiber.Handler

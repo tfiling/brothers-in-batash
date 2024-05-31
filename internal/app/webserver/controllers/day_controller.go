@@ -10,6 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// TODO - Implement a concrete type for API requests and responses bodies(currently using the actual models)
+
 type DayScheduleController struct {
 	dayStore       store.IDayStore
 	authMiddleware fiber.Handler
