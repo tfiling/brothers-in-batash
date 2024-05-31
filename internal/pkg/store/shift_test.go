@@ -43,11 +43,13 @@ func TestInMemShiftStore_CreateNewShift__success(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:        "123",
-		Name:      "Test Shift",
-		Type:      models.MotorizedPatrolShiftType,
-		StartTime: testStartTime,
-		EndTime:   testEndTime,
+		ID:   "123",
+		Name: "Test Shift",
+		Type: models.MotorizedPatrolShiftType,
+		ShiftTime: models.ShiftTime{
+			StartTime: testStartTime,
+			EndTime:   testEndTime,
+		},
 		Commander: testSoldier,
 	}
 
@@ -64,11 +66,13 @@ func TestInMemShiftStore_CreateNewShift__duplicate_id(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:        "123",
-		Name:      "Test Shift",
-		Type:      models.MotorizedPatrolShiftType,
-		StartTime: testStartTime,
-		EndTime:   testEndTime,
+		ID:   "123",
+		Name: "Test Shift",
+		Type: models.MotorizedPatrolShiftType,
+		ShiftTime: models.ShiftTime{
+			StartTime: testStartTime,
+			EndTime:   testEndTime,
+		},
 		Commander: testSoldier,
 	}
 
@@ -106,11 +110,13 @@ func TestInMemShiftStore_FindShiftByID__success(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:        "123",
-		Name:      "Test Shift",
-		Type:      models.MotorizedPatrolShiftType,
-		StartTime: testStartTime,
-		EndTime:   testEndTime,
+		ID:   "123",
+		Name: "Test Shift",
+		Type: models.MotorizedPatrolShiftType,
+		ShiftTime: models.ShiftTime{
+			StartTime: testStartTime,
+			EndTime:   testEndTime,
+		},
 		Commander: testSoldier,
 	}
 
@@ -146,19 +152,23 @@ func TestInMemShiftStore_FindAllShifts__success(t *testing.T) {
 
 	shifts := []models.Shift{
 		{
-			ID:        "1",
-			Name:      "Shift 1",
-			Type:      models.MotorizedPatrolShiftType,
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
+			ID:   "1",
+			Name: "Shift 1",
+			Type: models.MotorizedPatrolShiftType,
+			ShiftTime: models.ShiftTime{
+				StartTime: testStartTime,
+				EndTime:   testEndTime,
+			},
 			Commander: testSoldier,
 		},
 		{
-			ID:        "2",
-			Name:      "Shift 2",
-			Type:      models.StaticPostShiftType,
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
+			ID:   "2",
+			Name: "Shift 2",
+			Type: models.StaticPostShiftType,
+			ShiftTime: models.ShiftTime{
+				StartTime: testStartTime,
+				EndTime:   testEndTime,
+			},
 			Commander: testSoldier,
 		},
 	}
@@ -183,11 +193,13 @@ func TestInMemShiftStore_UpdateShift__success(t *testing.T) {
 
 	shiftID := "123"
 	shift := models.Shift{
-		ID:        shiftID,
-		Name:      "Test Shift",
-		Type:      models.MotorizedPatrolShiftType,
-		StartTime: testStartTime,
-		EndTime:   testEndTime,
+		ID:   shiftID,
+		Name: "Test Shift",
+		Type: models.MotorizedPatrolShiftType,
+		ShiftTime: models.ShiftTime{
+			StartTime: testStartTime,
+			EndTime:   testEndTime,
+		},
 		Commander: testSoldier,
 	}
 
@@ -227,11 +239,13 @@ func TestInMemShiftStore_UpdateShift__invalid_data(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:        "123",
-		Name:      "Test Shift",
-		Type:      models.MotorizedPatrolShiftType,
-		StartTime: testStartTime,
-		EndTime:   testEndTime,
+		ID:   "123",
+		Name: "Test Shift",
+		Type: models.MotorizedPatrolShiftType,
+		ShiftTime: models.ShiftTime{
+			StartTime: testStartTime,
+			EndTime:   testEndTime,
+		},
 		Commander: testSoldier,
 	}
 
@@ -255,11 +269,13 @@ func TestInMemShiftStore_DeleteShift__success(t *testing.T) {
 
 	shiftID := "123"
 	shift := models.Shift{
-		ID:        shiftID,
-		Name:      "Test Shift",
-		Type:      models.MotorizedPatrolShiftType,
-		StartTime: testStartTime,
-		EndTime:   testEndTime,
+		ID:   shiftID,
+		Name: "Test Shift",
+		Type: models.MotorizedPatrolShiftType,
+		ShiftTime: models.ShiftTime{
+			StartTime: testStartTime,
+			EndTime:   testEndTime,
+		},
 		Commander: testSoldier,
 	}
 

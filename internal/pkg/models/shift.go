@@ -22,15 +22,39 @@ type TimeOfDay struct {
 	Minute int `json:"minute" validate:"min=0,max=59"`
 }
 
+type ShiftTime struct {
+	StartTime TimeOfDay `json:"startTime" validate:"required"`
+	EndTime   TimeOfDay `json:"endTime" validate:"required"`
+}
+
+// PersonnelRequirement is a container for any personnel requirements/ constraints for a specific shift
+type PersonnelRequirement struct {
+	// SoldierRoleToCount maps between specific SoldierRole and the minimum number of soldiers with that Role that are required for the shift
+	SoldierRoleToCount map[string]int
+}
+
+// ShiftTemplate is used to describe the repetitive tasks. Based on ShiftTemplate, Shift instances are being created.
+type ShiftTemplate struct {
+	ID                   string               `json:"id" validate:"required"`
+	Name                 string               `json:"name" validate:"required"`
+	Description          string               `json:"description" validate:"required"`
+	PersonnelRequirement PersonnelRequirement `json:"personnelRequirement" validate:"required"`
+	// DaysOfOccurrences maps from a weekday to start and end times of a shift.
+	//An empty slice would indicate this shift will not happen on that weekday.
+	DaysOfOccurrences map[time.Weekday][]ShiftTime `json:"dayOfWeek" validate:"required"`
+}
+
+// Shift describes a specific shift, in a specific time and date.
+// Shift could be created based on a ShiftTemplate(will provide constraints), or out of scratch.
 type Shift struct {
+	ShiftTime
 	ID                 string    `json:"id" validate:"required"`
 	Name               string    `json:"name" validate:"required"`
 	Type               ShiftType `json:"type" validate:"min=0"`
-	StartTime          TimeOfDay `json:"startTime" validate:"required"`
-	EndTime            TimeOfDay `json:"endTime" validate:"required"`
 	Commander          Soldier   `json:"commander" validate:"required"`
-	AdditionalSoldiers []Soldier `json:"additionalSoldiers"`
-	Description        string    `json:"description"`
+	AdditionalSoldiers []Soldier `json:"additionalSoldiers" validate:"dive"`
+	Description        string    `json:"description" validate:"omitempty,min=1,max=255"`
+	ShiftTemplateID    string    `json:"shiftTemplateId" validate:"omitempty"`
 }
 
 type DaySchedule struct {
