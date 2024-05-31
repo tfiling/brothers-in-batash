@@ -29,13 +29,15 @@ var testDaySchedule = models.DaySchedule{
 			ID:   "1",
 			Name: "Morning Shift",
 			Type: models.DailyDutyShiftType,
-			StartTime: models.TimeOfDay{
-				Hour:   0,
-				Minute: 0,
-			},
-			EndTime: models.TimeOfDay{
-				Hour:   1,
-				Minute: 0,
+			ShiftTime: models.ShiftTime{
+				StartTime: models.TimeOfDay{
+					Hour:   0,
+					Minute: 0,
+				},
+				EndTime: models.TimeOfDay{
+					Hour:   1,
+					Minute: 0,
+				},
 			},
 			Commander: testCommander,
 		},
