@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// TODO - Implement a concrete type for API requests and responses bodies(currently using the actual models)
+
 type SoldierController struct {
 	soldierStore   store.ISoldierStore
 	authMiddleware fiber.Handler

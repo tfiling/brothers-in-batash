@@ -11,7 +11,7 @@ type Soldier struct {
 }
 
 // SoldierRole is the "Pakal"s of the soldier. Admins will be able to edit and add roles.
-// Will be used for driving qualifications as well.
+// Also used for managing driving qualifications and commanding positions
 type SoldierRole struct {
 	ID          string `json:"id" validate:"required"`
 	Name        string `json:"name" validate:"required,alpha"`
