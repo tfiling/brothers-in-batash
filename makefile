@@ -1,4 +1,5 @@
-IMAGE_TAG?=$(shell echo `git describe --tags`-`git branch --show-current`)
+LAST_TAG?=$(shell git describe --tags 2>/dev/null || echo 'latest')
+IMAGE_TAG?=$(LAST_TAG)-$(shell git branch --show-current)
 LOCAL_REPO := "ldg"
 
 export DOCKER_BUILDKIT:=1
