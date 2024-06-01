@@ -1,0 +1,2 @@
+id,name,description,personnel_requirement,days_of_occurrences
+1,Night Watch,"Manning guard tower at night","{""Commander"": 1}","{""Monday"": [{""start_time"": {""hour"": 22, ""minute"": 0}, ""end_time"": {""hour"": 6, ""minute"": 0}}], ""Tuesday"": [{""start_time"": {""hour"": 22, ""minute"": 0}, ""end_time"": {""hour"": 6, ""minute"": 0}}]}"

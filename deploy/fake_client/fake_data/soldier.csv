@@ -1,0 +1,2 @@
+id,first_name,middle_name,last_name,personal_number,position(int),roles
+1,John,,Doe,1234567,4,"[{""id"":""1"",""name"":""Commander""}]"
