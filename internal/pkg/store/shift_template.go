@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+//TODO - accept ctx in signatures
+
 type IShiftTemplateStore interface {
 	CreateNewShiftTemplate(template models.ShiftTemplate) error
 	FindShiftTemplateByID(id string) ([]models.ShiftTemplate, error)

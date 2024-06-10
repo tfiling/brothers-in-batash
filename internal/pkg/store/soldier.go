@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+//TODO - accept ctx in signatures
+
 type ISoldierStore interface {
 	CreateNewSoldier(soldier models.Soldier) error
 	FindSoldierByID(id string) ([]models.Soldier, error)

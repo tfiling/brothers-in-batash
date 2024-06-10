@@ -6,6 +6,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+//TODO - accept ctx in signatures
+
 type IShiftStore interface {
 	CreateNewShift(shift models.Shift) error
 	FindShiftByID(id string) ([]models.Shift, error)

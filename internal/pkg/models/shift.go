@@ -48,9 +48,10 @@ type ShiftTemplate struct {
 // Shift could be created based on a ShiftTemplate(will provide constraints), or out of scratch.
 type Shift struct {
 	ShiftTime
-	ID                 string    `json:"id" validate:"required"`
-	Name               string    `json:"name" validate:"required"`
-	Type               ShiftType `json:"type" validate:"min=0"`
+	ID   string    `json:"id" validate:"required"`
+	Name string    `json:"name" validate:"required"`
+	Type ShiftType `json:"type" validate:"min=0"`
+	// TODO - reconsider using concrete solders models instead of IDs(did not thoroughly think about it)
 	Commander          Soldier   `json:"commander" validate:"required"`
 	AdditionalSoldiers []Soldier `json:"additionalSoldiers" validate:"dive"`
 	Description        string    `json:"description" validate:"omitempty,min=1,max=255"`

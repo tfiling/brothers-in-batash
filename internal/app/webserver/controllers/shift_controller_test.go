@@ -2,6 +2,7 @@ package controllers_test
 
 import (
 	"brothers_in_batash/internal/app/webserver/controllers"
+	"brothers_in_batash/internal/pkg/mocks"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
 	"brothers_in_batash/internal/pkg/test_utils"
@@ -45,38 +46,46 @@ var testShift = models.Shift{
 	AdditionalSoldiers: nil,
 }
 
-func TestShiftController_NewShiftController__error_on_nil_store(t *testing.T) {
-	// Arrange
-	var shiftStore store.IShiftStore
+func TestShiftController_NewShiftController__sad_flows(t *testing.T) {
+	testCases := []struct {
+		shiftStore     store.IShiftStore
+		soldierStore   store.ISoldierStore
+		authMiddleware fiber.Handler
+		name           string
+	}{
+		{
+			shiftStore:     nil,
+			soldierStore:   &mocks.MockISoldierStore{},
+			authMiddleware: test_utils.AlwaysAllowedJWTMiddleware,
+			name:           "nil shift store",
+		},
+		{
+			shiftStore:     &mocks.MockIShiftStore{},
+			soldierStore:   nil,
+			authMiddleware: test_utils.AlwaysAllowedJWTMiddleware,
+			name:           "nil soldier store",
+		},
+		{
+			shiftStore:     &mocks.MockIShiftStore{},
+			soldierStore:   &mocks.MockISoldierStore{},
+			authMiddleware: nil,
+			name:           "nil auth middleware",
+		},
+	}
+	for _, testCase := range testCases {
+		// Act
+		controller, err := controllers.NewShiftController(testCase.shiftStore, testCase.soldierStore, testCase.authMiddleware)
 
-	// Act
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, controller)
-}
-
-func TestShiftController_NewShiftController__error_on_nil_middleware(t *testing.T) {
-	// Arrange
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-
-	// Act
-	controller, err := controllers.NewShiftController(shiftStore, nil)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, controller)
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, controller)
+	}
 }
 
 func TestShiftController_NewShiftController__success(t *testing.T) {
-	// Arrange
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-
 	// Act
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	controller, err := controllers.NewShiftController(&mocks.MockIShiftStore{}, &mocks.MockISoldierStore{},
+		test_utils.AlwaysAllowedJWTMiddleware)
 
 	// Assert
 	assert.NoError(t, err)

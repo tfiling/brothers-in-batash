@@ -7,7 +7,7 @@ type Soldier struct {
 	LastName       string          `json:"lastName" validate:"required,alpha"`
 	PersonalNumber string          `json:"personalNumber" validate:"required,numeric,len=7"`
 	Position       SoldierPosition `json:"position" validate:"required"`
-	Roles          []SoldierRole   `json:"roles" validate:"min=1"`
+	Roles          []SoldierRole   `json:"roles" validate:"min=1,dive"`
 }
 
 // SoldierRole is the "Pakal"s of the soldier. Admins will be able to edit and add roles.

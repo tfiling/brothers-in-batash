@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+//TODO - accept ctx in signatures
+
 type IDayStore interface {
 	CreateNewDaySchedule(day models.DaySchedule) error
 	FindDaySchedule(date time.Time) ([]models.DaySchedule, error)

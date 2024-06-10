@@ -27,7 +27,7 @@ func TestInMemSoldierStore_CreateNewSoldier__success(t *testing.T) {
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
 		Roles: []models.SoldierRole{
-			{ID: "role1", Name: "Role1"},
+			{ID: "1", Name: "Role"},
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestInMemSoldierStore_CreateNewSoldier__duplicate_id(t *testing.T) {
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
 		Roles: []models.SoldierRole{
-			{ID: "role1", Name: "Role1"},
+			{ID: "1", Name: "Role"},
 		},
 	}
 
@@ -97,7 +97,7 @@ func TestInMemSoldierStore_FindSoldierByID__success(t *testing.T) {
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
 		Roles: []models.SoldierRole{
-			{ID: "role1", Name: "Role1"},
+			{ID: "1", Name: "Role"},
 		},
 	}
 
@@ -139,7 +139,7 @@ func TestInMemSoldierStore_FindAllSoldiers__success(t *testing.T) {
 			PersonalNumber: "1234567",
 			Position:       models.RegularSoldierPosition,
 			Roles: []models.SoldierRole{
-				{ID: "role1", Name: "Role1"},
+				{ID: "1", Name: "Role"},
 			},
 		},
 		{
@@ -149,7 +149,7 @@ func TestInMemSoldierStore_FindAllSoldiers__success(t *testing.T) {
 			PersonalNumber: "7654321",
 			Position:       models.SquadCommanderPosition,
 			Roles: []models.SoldierRole{
-				{ID: "role2", Name: "Role2"},
+				{ID: "1", Name: "Role"},
 			},
 		},
 	}
@@ -180,7 +180,7 @@ func TestInMemSoldierStore_UpdateSoldier__success(t *testing.T) {
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
 		Roles: []models.SoldierRole{
-			{ID: "role1", Name: "Role1"},
+			{ID: "1", Name: "Role"},
 		},
 	}
 
@@ -226,7 +226,7 @@ func TestInMemSoldierStore_UpdateSoldier__invalid_data(t *testing.T) {
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
 		Roles: []models.SoldierRole{
-			{ID: "role1", Name: "Role1"},
+			{ID: "1", Name: "Role"},
 		},
 	}
 
@@ -256,7 +256,7 @@ func TestInMemSoldierStore_DeleteSoldier__success(t *testing.T) {
 		PersonalNumber: "1234567",
 		Position:       models.RegularSoldierPosition,
 		Roles: []models.SoldierRole{
-			{ID: "role1", Name: "Role1"},
+			{ID: "1", Name: "Role"},
 		},
 	}
 
