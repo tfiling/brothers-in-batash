@@ -59,7 +59,7 @@ func TestDayScheduleController_CreateDaySchedule__invalid_request_body(t *testin
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -85,7 +85,7 @@ func TestDayScheduleController_CreateDaySchedule__success(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -104,7 +104,7 @@ func TestDayScheduleController_GetDaySchedule__invalid_date_format(t *testing.T)
 	req := httptest.NewRequest(fiber.MethodGet, "/day-schedules/invalid-date", nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -124,7 +124,7 @@ func TestDayScheduleController_GetDaySchedule__not_found(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/day-schedules/%s", date.Format("2006-01-02")), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -151,7 +151,7 @@ func TestDayScheduleController_GetDaySchedule__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/day-schedules/%s", date.Format("2006-01-02")), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -189,7 +189,7 @@ func TestDayScheduleController_GetAllDaySchedules__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, controllers.GetAllDaySchedulesRoute, nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -214,7 +214,7 @@ func TestDayScheduleController_UpdateDaySchedule__invalid_request_body(t *testin
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -233,7 +233,7 @@ func TestDayScheduleController_UpdateDaySchedule__invalid_date_format(t *testing
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -260,7 +260,7 @@ func TestDayScheduleController_UpdateDaySchedule__success(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -279,7 +279,7 @@ func TestDayScheduleController_DeleteDaySchedule__invalid_date_format(t *testing
 	req := httptest.NewRequest(fiber.MethodDelete, "/day-schedules/invalid-date", nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -299,7 +299,7 @@ func TestDayScheduleController_DeleteDaySchedule__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/day-schedules/%s", date.Format("2006-01-02")), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)

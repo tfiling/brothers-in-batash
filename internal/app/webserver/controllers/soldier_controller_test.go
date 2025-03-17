@@ -57,7 +57,7 @@ func TestSoldierController_CreateSoldier__invalid_request_body(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -79,7 +79,7 @@ func TestSoldierController_CreateSoldier__success(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -100,7 +100,7 @@ func TestSoldierController_GetSoldier__not_found(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, "/soldiers/"+soldierID, nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -122,7 +122,7 @@ func TestSoldierController_GetSoldier__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, "/soldiers/"+soldierID, nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -150,7 +150,7 @@ func TestSoldierController_GetAllSoldiers__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, controllers.GetAllSoldiersRoute, nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -175,7 +175,7 @@ func TestSoldierController_UpdateSoldier__invalid_request_body(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -198,7 +198,7 @@ func TestSoldierController_UpdateSoldier__success(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -219,7 +219,7 @@ func TestSoldierController_DeleteSoldier__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodDelete, "/soldiers/"+soldierID, nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)

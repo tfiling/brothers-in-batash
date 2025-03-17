@@ -84,7 +84,7 @@ func TestShiftTemplateController_GetShiftTemplate__not_found(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/shift-templates/%s", shiftTemplateID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -106,7 +106,7 @@ func TestShiftTemplateController_GetShiftTemplate__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/shift-templates/%s", shiftTemplateID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -136,7 +136,7 @@ func TestShiftTemplateController_GetAllShiftTemplates__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodGet, controllers.GetAllShiftTemplatesRoute, nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -162,7 +162,7 @@ func TestShiftTemplateController_DeleteShiftTemplate__not_found(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/shift-templates/%s", shiftTemplateID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -184,7 +184,7 @@ func TestShiftTemplateController_DeleteShiftTemplate__success(t *testing.T) {
 	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/shift-templates/%s", shiftTemplateID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -205,7 +205,7 @@ func TestShiftTemplateController_CreateShiftTemplate__invalid_request_body(t *te
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -227,7 +227,7 @@ func TestShiftTemplateController_CreateShiftTemplate__success(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -249,7 +249,7 @@ func TestShiftTemplateController_UpdateShiftTemplate__invalid_request_body(t *te
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -272,7 +272,7 @@ func TestShiftTemplateController_UpdateShiftTemplate__not_found(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -299,7 +299,7 @@ func TestShiftTemplateController_UpdateShiftTemplate__success(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
