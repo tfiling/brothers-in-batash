@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+//TODO - accept ctx in signatures
+
 type IUserStore interface {
 	CreateNewUser(user models.User) error
 	FindUserByUsername(username string) ([]models.User, error)
