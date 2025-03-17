@@ -95,7 +95,7 @@ func TestRegistrationController_RegisterUser__sad_flows(t *testing.T) {
 			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			//Act
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, test_utils.TestTimeout)
 
 			//Assert
 			assert.NoError(t, err)
@@ -127,8 +127,8 @@ func TestRegistrationController_RegisterUser__user_already_exists(t *testing.T) 
 	secondReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(req)
-	resp, err = app.Test(secondReq)
+	resp, err := app.Test(req, test_utils.TestTimeout)
+	resp, err = app.Test(secondReq, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
@@ -156,7 +156,7 @@ func TestRegistrationController_RegisterUser__user_successfully_created(t *testi
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
@@ -205,7 +205,7 @@ func TestRegistrationController_LoginUser__sad_flows(t *testing.T) {
 			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			//Act
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, test_utils.TestTimeout)
 
 			//Assert
 			assert.NoError(t, err)
@@ -236,7 +236,7 @@ func TestRegistrationController_LoginUser__non_existing_user(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
@@ -270,7 +270,7 @@ func TestRegistrationController_LoginUser__wrong_password(t *testing.T) {
 	loginReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(loginReq)
+	resp, err := app.Test(loginReq, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
@@ -308,7 +308,7 @@ func TestRegistrationController_LoginUser__success(t *testing.T) {
 	loginReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(loginReq)
+	resp, err := app.Test(loginReq, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
@@ -356,7 +356,7 @@ func TestRegistrationController_RefreshToken__sad_flows(t *testing.T) {
 			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			//Act
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, test_utils.TestTimeout)
 
 			//Assert
 			assert.NoError(t, err)
@@ -394,7 +394,7 @@ func TestRegistrationController_RefreshToken__wrong_claims_type(t *testing.T) {
 	refreshTokenReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(refreshTokenReq)
+	resp, err := app.Test(refreshTokenReq, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
@@ -424,7 +424,7 @@ func TestRegistrationController_RefreshToken__success(t *testing.T) {
 	refreshTokenReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	//Act
-	resp, err := app.Test(refreshTokenReq)
+	resp, err := app.Test(refreshTokenReq, test_utils.TestTimeout)
 
 	//Assert
 	assert.NoError(t, err)
