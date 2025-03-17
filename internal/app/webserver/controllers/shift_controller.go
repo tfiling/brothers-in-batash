@@ -1,29 +1,35 @@
 package controllers
 
 import (
+	"brothers_in_batash/internal/app/webserver/api"
 	"brothers_in_batash/internal/pkg/logging"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
-	"errors"
+	"brothers_in_batash/internal/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 )
 
 // TODO - Implement a concrete type for API requests and responses bodies
 
 type ShiftController struct {
 	shiftStore     store.IShiftStore
+	soldierStore   store.ISoldierStore
 	authMiddleware fiber.Handler
 }
 
-func NewShiftController(shiftStore store.IShiftStore, authMiddleware fiber.Handler) (*ShiftController, error) {
+func NewShiftController(shiftStore store.IShiftStore, soldierStore store.ISoldierStore, authMiddleware fiber.Handler) (*ShiftController, error) {
 	if shiftStore == nil {
 		return nil, errors.New("shiftStore is nil")
+	}
+	if soldierStore == nil {
+		return nil, errors.New("soldierStore is nil")
 	}
 	if authMiddleware == nil {
 		return nil, errors.New("authMiddleware is nil")
 	}
-	return &ShiftController{shiftStore: shiftStore, authMiddleware: authMiddleware}, nil
+	return &ShiftController{shiftStore: shiftStore, soldierStore: soldierStore, authMiddleware: authMiddleware}, nil
 }
 
 func (c *ShiftController) RegisterRoutes(router fiber.Router) error {
@@ -36,13 +42,20 @@ func (c *ShiftController) RegisterRoutes(router fiber.Router) error {
 }
 
 func (c *ShiftController) createShift(ctx *fiber.Ctx) error {
-	shift := models.Shift{}
-	if err := ctx.BodyParser(&shift); err != nil {
-		logging.Debug("Could not parse shift creation request body", []logging.LogProp{{"error", err.Error()}})
+	reqBody := api.Shift{}
+	if err := ctx.BodyParser(&reqBody); err != nil {
+		errStr := err.Error()
+		bodyStr := string(ctx.Body())
+		logging.Debug("Could not parse shift creation request body", []logging.LogProp{{"error", errStr}, {"body", bodyStr}})
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	if err := c.shiftStore.CreateNewShift(shift); err != nil {
+	shiftModel, err := c.convertShiftApiReqToModel(ctx, reqBody)
+	if err != nil {
+		return err
+	}
+
+	if err := c.shiftStore.CreateNewShift(shiftModel); err != nil {
 		logging.Warning(err, "error on creating new shift", nil)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
@@ -59,28 +72,47 @@ func (c *ShiftController) getShift(ctx *fiber.Ctx) error {
 		logging.Trace("shift not found", []logging.LogProp{{"shiftID", shiftID}})
 		return ctx.SendStatus(fiber.StatusNotFound)
 	}
-	return ctx.JSON(shifts[0])
+	return ctx.JSON(c.convertShiftModelToApiTYpe(shifts[0]))
 }
 
 func (c *ShiftController) getAllShifts(ctx *fiber.Ctx) error {
-	shifts, err := c.shiftStore.FindAllShifts()
+	dbShifts, err := c.shiftStore.FindAllShifts()
 	if err != nil {
 		logging.Warning(err, "error on fetching all shifts", nil)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+	shifts := make([]api.Shift, 1)
+	for _, dbShift := range dbShifts {
+		shifts = append(shifts, c.convertShiftModelToApiTYpe(dbShift))
 	}
 	return ctx.JSON(shifts)
 }
 
 func (c *ShiftController) updateShift(ctx *fiber.Ctx) error {
 	shiftID := ctx.Params("id")
-	shift := models.Shift{}
-	if err := ctx.BodyParser(&shift); err != nil {
+	apiShift := api.Shift{}
+	if err := ctx.BodyParser(&apiShift); err != nil {
 		logging.Info("Could not parse shift update request body", []logging.LogProp{{"error", err.Error()}})
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
+	if apiShift.ID != shiftID {
+		logging.Debug("mismatch between shift ID in body and shift ID in URI",
+			[]logging.LogProp{{"body_shift_id", apiShift.ID}, {"uri_shift_id", shiftID}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+	if shifts, err := c.shiftStore.FindShiftByID(shiftID); err != nil {
+		logging.Info("Could not query existing shift on update", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	} else if len(shifts) == 0 {
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
 
-	shift.ID = shiftID
-	if err := c.shiftStore.UpdateShift(shift); err != nil {
+	shift, err := c.convertShiftApiReqToModel(ctx, apiShift)
+	if err != nil {
+		logging.Debug("Could not convert API shift to shift model", []logging.LogProp{{"error", err.Error()}})
+		return err
+	}
+	if err = c.shiftStore.UpdateShift(shift); err != nil {
 		logging.Warning(err, "error on updating shift", []logging.LogProp{{"shiftID", shiftID}})
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
@@ -94,4 +126,76 @@ func (c *ShiftController) deleteShift(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 	return ctx.SendStatus(fiber.StatusOK)
+}
+
+func (c *ShiftController) convertShiftApiReqToModel(ctx *fiber.Ctx, shiftApiReq api.Shift) (models.Shift, error) {
+	shiftModel := models.Shift{
+		ID: utils.NewEntityID(),
+		ShiftTime: models.ShiftTime{
+			StartTime: models.TimeOfDay{
+				Hour:   shiftApiReq.StartTimeHour,
+				Minute: shiftApiReq.StartTimeMinute,
+			},
+			EndTime: models.TimeOfDay{
+				Hour:   shiftApiReq.EndTimeHour,
+				Minute: shiftApiReq.EndTimeMinute,
+			},
+		},
+		Name:            shiftApiReq.Name,
+		Type:            models.ShiftType(shiftApiReq.Type),
+		Description:     shiftApiReq.Description,
+		ShiftTemplateID: shiftApiReq.ShiftTemplateID,
+	}
+	return c.populateSoldiersFromIDs(ctx, shiftApiReq, shiftModel)
+}
+
+func (c *ShiftController) populateSoldiersFromIDs(ctx *fiber.Ctx, shiftApiReq api.Shift, shiftModel models.Shift) (models.Shift, error) {
+	foundSoldiers, err := c.soldierStore.FindSoldierByID(shiftApiReq.CommanderSoldierID)
+	if err != nil {
+		logging.Warning(err, "could not query shift commander", []logging.LogProp{{"commander_id", shiftApiReq.CommanderSoldierID}})
+		return shiftModel, ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	if len(foundSoldiers) == 0 {
+		logging.Debug("could not query shift commander", []logging.LogProp{{"commander_id", shiftApiReq.CommanderSoldierID}})
+		return shiftModel, ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	shiftModel.Commander = foundSoldiers[0]
+
+	for _, soldierID := range shiftApiReq.AdditionalSoldiersIDs {
+		foundSoldiers, err = c.soldierStore.FindSoldierByID(soldierID)
+		if err != nil {
+			logging.Warning(err, "could not query additional soldier", []logging.LogProp{{"soldier_id", soldierID}})
+			return shiftModel, ctx.SendStatus(fiber.StatusInternalServerError)
+		}
+
+		if len(foundSoldiers) == 0 {
+			logging.Debug("could not query additional soldier", []logging.LogProp{{"soldier_id", soldierID}})
+			return shiftModel, ctx.SendStatus(fiber.StatusBadRequest)
+		}
+		shiftModel.AdditionalSoldiers = append(shiftModel.AdditionalSoldiers, foundSoldiers[0])
+	}
+
+	return shiftModel, nil
+}
+
+func (c *ShiftController) convertShiftModelToApiTYpe(shift models.Shift) api.Shift {
+	var soldierIDs = make([]string, 0)
+	for _, soldier := range shift.AdditionalSoldiers {
+		soldierIDs = append(soldierIDs, soldier.ID)
+	}
+	return api.Shift{
+		StartTimeHour:         shift.StartTime.Hour,
+		StartTimeMinute:       shift.StartTime.Minute,
+		EndTimeHour:           shift.EndTime.Hour,
+		EndTimeMinute:         shift.EndTime.Minute,
+		ID:                    shift.ID,
+		Name:                  shift.Name,
+		Type:                  api.ShiftType(shift.Type),
+		CommanderSoldierID:    shift.Commander.ID,
+		AdditionalSoldiersIDs: soldierIDs,
+		Description:           shift.Description,
+		ShiftTemplateID:       shift.ShiftTemplateID,
+	}
 }

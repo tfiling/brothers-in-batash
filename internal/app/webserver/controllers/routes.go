@@ -82,7 +82,7 @@ func InitControllers() (controllers []Controller, err error) {
 	}
 	controllers = append(controllers, dayScheduleController)
 
-	shiftController, err := NewShiftController(storeInstances.shiftStore, authMiddleware)
+	shiftController, err := NewShiftController(storeInstances.shiftStore, storeInstances.soldierStore, authMiddleware)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize shift controller")
 	}

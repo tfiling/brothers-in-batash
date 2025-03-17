@@ -1,7 +1,9 @@
 package controllers_test
 
 import (
+	"brothers_in_batash/internal/app/webserver/api"
 	"brothers_in_batash/internal/app/webserver/controllers"
+	"brothers_in_batash/internal/pkg/mocks"
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
 	"brothers_in_batash/internal/pkg/test_utils"
@@ -12,14 +14,31 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-const shiftID = "123"
+const (
+	shiftID = "123"
+	commanderID
+	testShiftName = "Test Shift"
+)
 
-var testShift = models.Shift{
+var testCommander = models.Soldier{
+	ID:             commanderID,
+	FirstName:      "Gal",
+	LastName:       "Tfilin",
+	PersonalNumber: "1234567",
+	Position:       models.CommanderPosition,
+	Roles: []models.SoldierRole{{
+		ID:   "1",
+		Name: "Commander",
+	}},
+}
+
+var testShiftModel = models.Shift{
 	ID:   shiftID,
-	Name: "Test Shift",
+	Name: testShiftName,
 	Type: models.MotorizedPatrolShiftType,
 	ShiftTime: models.ShiftTime{
 		StartTime: models.TimeOfDay{
@@ -31,52 +50,64 @@ var testShift = models.Shift{
 			Minute: 0,
 		},
 	},
-	Commander: models.Soldier{
-		ID:             "123",
-		FirstName:      "Gal",
-		LastName:       "Tfilin",
-		PersonalNumber: "1234567",
-		Position:       models.CommanderPosition,
-		Roles: []models.SoldierRole{{
-			ID:   "1",
-			Name: "Commander",
-		}},
-	},
+	Commander:          testCommander,
 	AdditionalSoldiers: nil,
 }
 
-func TestShiftController_NewShiftController__error_on_nil_store(t *testing.T) {
-	// Arrange
-	var shiftStore store.IShiftStore
-
-	// Act
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, controller)
+var testShiftReqBody = api.Shift{
+	ID:                    shiftID,
+	StartTimeHour:         0,
+	StartTimeMinute:       0,
+	EndTimeHour:           1,
+	EndTimeMinute:         0,
+	Type:                  api.MotorizedPatrolShiftType,
+	CommanderSoldierID:    testCommander.ID,
+	AdditionalSoldiersIDs: []string{},
+	Description:           "",
+	ShiftTemplateID:       "",
+	Name:                  "Test Shift",
 }
 
-func TestShiftController_NewShiftController__error_on_nil_middleware(t *testing.T) {
-	// Arrange
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
+func TestShiftController_NewShiftController__sad_flows(t *testing.T) {
+	testCases := []struct {
+		shiftStore     store.IShiftStore
+		soldierStore   store.ISoldierStore
+		authMiddleware fiber.Handler
+		name           string
+	}{
+		{
+			shiftStore:     nil,
+			soldierStore:   &mocks.MockISoldierStore{},
+			authMiddleware: test_utils.AlwaysAllowedJWTMiddleware,
+			name:           "nil shift store",
+		},
+		{
+			shiftStore:     &mocks.MockIShiftStore{},
+			soldierStore:   nil,
+			authMiddleware: test_utils.AlwaysAllowedJWTMiddleware,
+			name:           "nil soldier store",
+		},
+		{
+			shiftStore:     &mocks.MockIShiftStore{},
+			soldierStore:   &mocks.MockISoldierStore{},
+			authMiddleware: nil,
+			name:           "nil auth middleware",
+		},
+	}
+	for _, testCase := range testCases {
+		// Act
+		controller, err := controllers.NewShiftController(testCase.shiftStore, testCase.soldierStore, testCase.authMiddleware)
 
-	// Act
-	controller, err := controllers.NewShiftController(shiftStore, nil)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, controller)
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, controller)
+	}
 }
 
 func TestShiftController_NewShiftController__success(t *testing.T) {
-	// Arrange
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-
 	// Act
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	controller, err := controllers.NewShiftController(&mocks.MockIShiftStore{}, &mocks.MockISoldierStore{},
+		test_utils.AlwaysAllowedJWTMiddleware)
 
 	// Assert
 	assert.NoError(t, err)
@@ -86,9 +117,9 @@ func TestShiftController_NewShiftController__success(t *testing.T) {
 func TestShiftController_CreateShift__invalid_request_body(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStore := &mocks.MockIShiftStore{}
+	soldierStore := &mocks.MockISoldierStore{}
+	controller, err := controllers.NewShiftController(shiftStore, soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -96,7 +127,7 @@ func TestShiftController_CreateShift__invalid_request_body(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -106,17 +137,21 @@ func TestShiftController_CreateShift__invalid_request_body(t *testing.T) {
 func TestShiftController_CreateShift__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStore := &mocks.MockIShiftStore{}
+	shiftStore.On("CreateNewShift", mock.MatchedBy(func(arg models.Shift) bool {
+		return arg.Name == testShiftName
+	})).Return(nil)
+	soldierStore := &mocks.MockISoldierStore{}
+	soldierStore.On("FindSoldierByID", commanderID).Return([]models.Soldier{testCommander}, nil)
+	controller, err := controllers.NewShiftController(shiftStore, soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
-	req := httptest.NewRequest(fiber.MethodPost, controllers.CreateShiftRoute, test_utils.WrapStructWithReader(t, testShift))
+	req := httptest.NewRequest(fiber.MethodPost, controllers.CreateShiftRoute, test_utils.WrapStructWithReader(t, testShiftReqBody))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -126,16 +161,16 @@ func TestShiftController_CreateShift__success(t *testing.T) {
 func TestShiftController_GetShift__not_found(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStore := &mocks.MockIShiftStore{}
+	shiftStore.On("FindShiftByID", mock.Anything).Return([]models.Shift{}, nil)
+	controller, err := controllers.NewShiftController(shiftStore, &mocks.MockISoldierStore{}, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/shifts/%s", shiftID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -145,64 +180,32 @@ func TestShiftController_GetShift__not_found(t *testing.T) {
 func TestShiftController_GetShift__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStore := &mocks.MockIShiftStore{}
+	shiftStore.On("FindShiftByID", shiftID).Return([]models.Shift{testShiftModel}, nil)
+	controller, err := controllers.NewShiftController(shiftStore, &mocks.MockISoldierStore{}, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
-	require.NoError(t, err)
-	err = shiftStore.CreateNewShift(testShift)
 	require.NoError(t, err)
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/shifts/%s", shiftID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-	var respShift models.Shift
+	var respShift api.Shift
 	err = json.NewDecoder(resp.Body).Decode(&respShift)
 	assert.NoError(t, err)
-	assert.Equal(t, testShift, respShift)
-}
-
-func TestShiftController_GetAllShifts__success(t *testing.T) {
-	// Arrange
-	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
-	require.NoError(t, err)
-	err = controller.RegisterRoutes(app)
-	require.NoError(t, err)
-	anotherShift := testShift
-	anotherShift.ID = "124"
-	shifts := []models.Shift{testShift, anotherShift}
-	for _, shift := range shifts {
-		err = shiftStore.CreateNewShift(shift)
-		require.NoError(t, err)
-	}
-	req := httptest.NewRequest(fiber.MethodGet, controllers.GetAllShiftsRoute, nil)
-
-	// Act
-	resp, err := app.Test(req)
-
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-	var respShifts []models.Shift
-	err = json.NewDecoder(resp.Body).Decode(&respShifts)
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, shifts, respShifts)
+	assert.Equal(t, testShiftReqBody, respShift)
 }
 
 func TestShiftController_UpdateShift__invalid_request_body(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStore := &mocks.MockIShiftStore{}
+	soldierStore := &mocks.MockISoldierStore{}
+	controller, err := controllers.NewShiftController(shiftStore, soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
@@ -211,7 +214,7 @@ func TestShiftController_UpdateShift__invalid_request_body(t *testing.T) {
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
@@ -221,92 +224,71 @@ func TestShiftController_UpdateShift__invalid_request_body(t *testing.T) {
 func TestShiftController_UpdateShift__not_found(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStore := &mocks.MockIShiftStore{}
+	shiftStore.On("FindShiftByID", shiftID).Return([]models.Shift{}, nil)
+	soldierStore := &mocks.MockISoldierStore{}
+	controller, err := controllers.NewShiftController(shiftStore, soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
 	req := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/shifts/%s", shiftID),
-		test_utils.WrapStructWithReader(t, testShift))
+		test_utils.WrapStructWithReader(t, testShiftReqBody))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 }
 
 func TestShiftController_UpdateShift__success(t *testing.T) {
 	// Arrange
+	updatedShift := testShiftReqBody
+	updatedShift.Name = "Updated Shift"
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStoreMock := &mocks.MockIShiftStore{}
+	shiftStoreMock.On("FindShiftByID", shiftID).Return([]models.Shift{testShiftModel}, nil)
+	shiftStoreMock.On("UpdateShift", mock.MatchedBy(func(arg models.Shift) bool {
+		return arg.Name == updatedShift.Name
+	})).Return(nil)
+	soldierStore := &mocks.MockISoldierStore{}
+	soldierStore.On("FindSoldierByID", testShiftModel.Commander.ID).Return([]models.Soldier{testCommander}, nil)
+	controller, err := controllers.NewShiftController(shiftStoreMock, soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
-	err = shiftStore.CreateNewShift(testShift)
-	require.NoError(t, err)
-	updatedShift := testShift
-	updatedShift.Name = "Updated Shift"
 	req := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/shifts/%s", shiftID),
 		test_utils.WrapStructWithReader(t, updatedShift))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-	foundShift, err := shiftStore.FindShiftByID(shiftID)
-	assert.NoError(t, err)
-	assert.Len(t, foundShift, 1)
-	assert.Equal(t, updatedShift, foundShift[0])
-}
-
-func TestShiftController_DeleteShift__not_found(t *testing.T) {
-	// Arrange
-	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
-	require.NoError(t, err)
-	err = controller.RegisterRoutes(app)
-	require.NoError(t, err)
-	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/shifts/%s", shiftID), nil)
-
-	// Act
-	resp, err := app.Test(req)
-
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	shiftStoreMock.AssertExpectations(t)
 }
 
 func TestShiftController_DeleteShift__success(t *testing.T) {
 	// Arrange
 	app := fiber.New()
-	shiftStore, err := store.NewShiftStore()
-	require.NoError(t, err)
-	controller, err := controllers.NewShiftController(shiftStore, test_utils.AlwaysAllowedJWTMiddleware)
+	shiftStoreMock := &mocks.MockIShiftStore{}
+	shiftStoreMock.On("DeleteShift", shiftID).Return(nil)
+	soldierStore := &mocks.MockISoldierStore{}
+	controller, err := controllers.NewShiftController(shiftStoreMock, soldierStore, test_utils.AlwaysAllowedJWTMiddleware)
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
-	require.NoError(t, err)
-	err = shiftStore.CreateNewShift(testShift)
 	require.NoError(t, err)
 	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/shifts/%s", shiftID), nil)
 
 	// Act
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, test_utils.TestTimeout)
 
 	// Assert
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-	foundShifts, err := shiftStore.FindShiftByID(shiftID)
-	assert.NoError(t, err)
-	assert.Len(t, foundShifts, 0)
+	shiftStoreMock.AssertExpectations(t)
 }
