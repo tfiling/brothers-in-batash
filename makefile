@@ -5,7 +5,7 @@ LOCAL_REPO := "ldg"
 export DOCKER_BUILDKIT:=1
 
 .PHONY: build
-build: build-ws
+build: build-ws build-frontend
 
 .PHONY: build-ws
 build-ws:
@@ -13,7 +13,13 @@ build-ws:
 	docker build --target webserver -t $(LOCAL_REPO)/webserver:$(IMAGE_TAG) .
 	@echo "====================== building ws completed ======================"
 
-.PHOMY: run
+.PHONY: build-frontend
+build-frontend:
+	@echo "====================== building frontend ======================"
+	docker build -f frontend/Dockerfile -t $(LOCAL_REPO)/frontend:$(IMAGE_TAG) ./frontend
+	@echo "====================== building frontend completed ======================"
+
+.PHONY: run
 run: test
 	@echo "====================== Running Local Dev Env ======================"
 	@TAG=${IMAGE_TAG} docker compose -f deploy/local/compose.yaml up -d
@@ -27,4 +33,6 @@ stop:
 test: build
 	@echo "====================== Running Tests ======================"
 	docker build . --target unit-test --tag $(LOCAL_REPO)/webserver-tests:latest
+	@echo "====================== Running Frontend Tests ======================"
+	docker run --rm -v $(PWD)/frontend:/app -w /app node:18-alpine npm test
 	@echo "====================== Completed Running Tests ======================"

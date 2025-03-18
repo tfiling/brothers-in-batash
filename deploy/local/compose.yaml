@@ -8,5 +8,16 @@ services:
     networks:
       - main-net
 
+  frontend:
+    image: ldg/frontend:${TAG}
+    ports:
+      - "8080:3000"
+    environment:
+      - API_URL=http://webserver:3000
+    networks:
+      - main-net
+    depends_on:
+      - webserver
+
 networks:
   main-net: { }
