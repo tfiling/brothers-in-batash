@@ -21,7 +21,7 @@ COPY go.* ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go mod download
-COPY .. .
+COPY ../.. .
 
 FROM base AS build-webserver
 RUN --mount=type=cache,target=/root/.cache/go-build \

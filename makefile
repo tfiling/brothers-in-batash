@@ -10,7 +10,7 @@ build: build-ws build-frontend
 .PHONY: build-ws
 build-ws:
 	@echo "====================== building ws ======================"
-	docker build --target webserver -t $(LOCAL_REPO)/webserver:$(IMAGE_TAG) .
+	docker build -f backend/Dockerfile --target webserver -t $(LOCAL_REPO)/webserver:$(IMAGE_TAG) ./backend
 	@echo "====================== building ws completed ======================"
 
 .PHONY: build-frontend
@@ -32,7 +32,7 @@ stop:
 .PHONY: test
 test: build
 	@echo "====================== Running Tests ======================"
-	docker build . --target unit-test --tag $(LOCAL_REPO)/webserver-tests:latest
+	docker build -f backend/Dockerfile --target unit-test --tag $(LOCAL_REPO)/webserver-tests:latest ./backend
 	@echo "====================== Running Frontend Tests ======================"
 	docker run --rm -v $(PWD)/frontend:/app -w /app node:18-alpine npm test
 	@echo "====================== Completed Running Tests ======================"
