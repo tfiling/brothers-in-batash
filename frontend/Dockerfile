@@ -1,33 +1,35 @@
-FROM node:18-alpine AS base
-
-# Install dependencies
-FROM base AS deps
+FROM node:18-alpine as base
+RUN apk add --no-cache g++ make py3-pip libc6-compat
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package*.json ./
+EXPOSE 3000
 
-# Build application
-FROM base AS builder
+FROM base as builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# Production image
-FROM base AS runner
+
+FROM base as production
 WORKDIR /app
 
 ENV NODE_ENV=production
+RUN npm ci
 
-# Copy necessary files
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
 
-# Set user for better security
-USER node
+CMD npm start
 
-EXPOSE 3000
-ENV PORT 3000
-
-CMD ["node", "server.js"]
+FROM base as dev
+ENV NODE_ENV=development
+RUN npm install 
+COPY . .
+CMD npm run dev
