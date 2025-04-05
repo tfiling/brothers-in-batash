@@ -10,6 +10,8 @@ services:
 
   frontend:
     image: ldg/frontend:${TAG}
+    build:
+      target: dev
     ports:
       - "8080:3000"
     environment:
