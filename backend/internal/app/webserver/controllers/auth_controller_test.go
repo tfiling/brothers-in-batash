@@ -51,6 +51,8 @@ func TestRegistrationController_NewRegistrationController__success(t *testing.T)
 }
 
 func TestRegistrationController_RegisterUser__sad_flows(t *testing.T) {
+	//TODO: remove skip
+	t.Skip("ATM I canceled the user registration flow")
 	//TODO - use a mock instead of the real instance
 	testCases := []struct {
 		name               string
@@ -105,6 +107,9 @@ func TestRegistrationController_RegisterUser__sad_flows(t *testing.T) {
 }
 
 func TestRegistrationController_RegisterUser__user_already_exists(t *testing.T) {
+	//TODO: remove skip
+	t.Skip("ATM I canceled the user registration flow")
+
 	//Arrange
 	app := fiber.New()
 
@@ -136,6 +141,9 @@ func TestRegistrationController_RegisterUser__user_already_exists(t *testing.T) 
 }
 
 func TestRegistrationController_RegisterUser__user_successfully_created(t *testing.T) {
+	//TODO: remove skip
+	t.Skip("ATM I canceled the user registration flow")
+
 	//Arrange
 	app := fiber.New()
 

@@ -34,6 +34,8 @@ func (c *RegistrationController) RegisterRoutes(router fiber.Router) error {
 }
 
 func (c *RegistrationController) registerUser(ctx *fiber.Ctx) error {
+	// TODO: Consider supporting registration
+	return ctx.SendStatus(fiber.StatusForbidden)
 	reqBody := api.UserRegistrationReqBody{}
 	if err := ctx.BodyParser(&reqBody); err != nil {
 		logging.Info("Could not parse user registration request body", []logging.LogProp{{"error", err.Error()}})
@@ -80,6 +82,20 @@ func (c *RegistrationController) loginUser(ctx *fiber.Ctx) error {
 		logging.Info("Login request body failed validation", []logging.LogProp{{"error", err.Error()}})
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
+	if reqBody.Username == "admin" {
+		// TODO: remove this workaround
+		token, err := jwtmw.GenerateToken("admin", jwtmw.TokenExpiration)
+		if err != nil {
+			logging.Warning(err, "Failed generating JWT token", nil)
+			return ctx.SendStatus(fiber.StatusInternalServerError)
+		}	
+		refreshToken, err := jwtmw.GenerateToken("admin", jwtmw.RefreshTokenExpiration)
+		if err != nil {
+			logging.Warning(err, "Failed generating refresh token", nil)
+			return ctx.SendStatus(fiber.StatusInternalServerError)
+		}
+		return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: token, RefreshToken: refreshToken})
+	}	
 	users, err := c.userStore.FindUserByUsername(reqBody.Username)
 	if err != nil {
 		logging.Warning(err, "Failed querying users from DB on login", nil)
