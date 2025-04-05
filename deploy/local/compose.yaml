@@ -20,6 +20,8 @@ services:
       - main-net
     depends_on:
       - webserver
+    volumes:
+      - ./../../frontend/src/app:/app/src/app:ro
 
 networks:
   main-net: { }
