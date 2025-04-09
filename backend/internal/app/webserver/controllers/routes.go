@@ -15,6 +15,7 @@ const (
 	RegisterRoute     = "/auth/register"
 	LoginRoute        = "/auth/login"
 	RefreshTokenRoute = "/auth/refresh"
+	LogoutRoute       = "/auth/logout"
 
 	CreateShiftRoute  = "/shifts"
 	GetShiftRoute     = "/shifts/:id"
