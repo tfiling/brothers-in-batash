@@ -23,8 +23,8 @@ type TimeOfDay struct {
 }
 
 type ShiftTime struct {
-	StartTime TimeOfDay `json:"startTime" validate:"required"`
-	EndTime   TimeOfDay `json:"endTime" validate:"required"`
+	StartTime TimeOfDay     `json:"startTime" validate:"required"`
+	Duration  time.Duration `json:"duration" validate:"required,min=60000000000"`
 }
 
 // PersonnelRequirement is a container for any personnel requirements/ constraints for a specific shift
@@ -47,8 +47,9 @@ type ShiftTemplate struct {
 // Shift describes a specific shift, in a specific time and date.
 // Shift could be created based on a ShiftTemplate(will provide constraints), or out of scratch.
 type Shift struct {
-	ShiftTime
 	ID                 string    `json:"id" validate:"required"`
+	StartTime          time.Time `json:"startTime" validate:"required"`
+	EndTime            time.Time `json:"endTime" validate:"required"`
 	Name               string    `json:"name" validate:"required"`
 	Type               ShiftType `json:"type" validate:"min=0"`
 	Commander          Soldier   `json:"commander" validate:"required"`
@@ -65,9 +66,6 @@ type DaySchedule struct {
 func (s Shift) IsValid() error {
 	if err := validator.New().Struct(s); err != nil {
 		return errors.Wrap(err, "shift failed validation")
-	}
-	if s.EndTime.Before(s.StartTime) {
-		return errors.New("shift end time must be greater than start time")
 	}
 	return nil
 }

@@ -26,19 +26,11 @@ var testDaySchedule = models.DaySchedule{
 	Date: time.Now(),
 	Shifts: []models.Shift{
 		{
-			ID:   "1",
-			Name: "Morning Shift",
-			Type: models.DailyDutyShiftType,
-			ShiftTime: models.ShiftTime{
-				StartTime: models.TimeOfDay{
-					Hour:   0,
-					Minute: 0,
-				},
-				EndTime: models.TimeOfDay{
-					Hour:   1,
-					Minute: 0,
-				},
-			},
+			ID:        "1",
+			Name:      "Morning Shift",
+			Type:      models.DailyDutyShiftType,
+			StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+			EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 			Commander: testCommander,
 		},
 	},
@@ -118,8 +110,8 @@ func TestInMemDaySchedStore_UpdateDaySchedule__success(t *testing.T) {
 	require.NoError(t, err)
 	updatedDaySchedule := testDaySchedule
 	updatedDaySchedule.Shifts = append(updatedDaySchedule.Shifts, updatedDaySchedule.Shifts[0])
-	updatedDaySchedule.Shifts[1].StartTime.Hour += 2
-	updatedDaySchedule.Shifts[1].EndTime.Hour += 3
+	updatedDaySchedule.Shifts[1].StartTime = updatedDaySchedule.Shifts[1].StartTime.Add(2 * time.Hour)
+	updatedDaySchedule.Shifts[1].EndTime = updatedDaySchedule.Shifts[1].EndTime.Add(3 * time.Hour)
 
 	// Act
 	err = dayStore.UpdateDaySchedule(updatedDaySchedule)
