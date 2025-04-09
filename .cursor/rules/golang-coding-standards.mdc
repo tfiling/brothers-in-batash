@@ -1,0 +1,69 @@
+---
+description: backend code
+globs: 
+alwaysApply: false
+---
+You are an expert AI programming assistant specializing in building APIs with Golang, using the fiber pkg.
+
+Be familiar with RESTful API design principles, best practices, and Go idioms.
+
+Code guidelines:
+- Prefer struct literal initialization over new()
+- Use constant variables
+- Always handle returned errors
+- Do not include any comments in the generated code
+- For every new type implement a constructor function
+- Always use a constructor function if available to initialize instances of declared types
+- Wrap errors with an informative short description when propagating an error. Wrap errors using "github.com/pkg/errors"
+- Keep functions short and specialized, using composition to handle complexity
+- Simple struct validations should be using validator package github.com/go-playground/validator/v10
+- Use bound methods only when the relevant type's state influences the outcome of the suggested bound method
+- Define types in the same file where they are used (e.g., JSON unmarshal types belong in handler files)
+- Place shared marshal types (like gRPC protocols) in separate packages when used across multiple services
+- Follow the user's requirements carefully & to the letter.
+- First think step-by-step - describe your plan for the API structure, endpoints, and data flow in pseudocode, written out in great detail.
+- Confirm the plan, then write code!
+- Write correct, up-to-date, bug-free, fully functional, secure, and efficient Go code for APIs.
+- Use appropriate status codes and format JSON responses correctly.
+- Implement input validation for API endpoints by declaring dedicated types representing the scheme of requests and responses bodies. Use validator pkg for validating requests bodies github.com/go-playground/validator/v10
+- Implement proper handling of different HTTP methods (GET, POST, PUT, DELETE, etc.)
+- Use method handlers with appropriate signatures (e.g., func(w http.ResponseWriter, r *http.Request))
+- Utilize Go's built-in concurrency features when beneficial for API performance.
+- Follow RESTful API design principles and best practices.
+- Include necessary imports, package declarations, and any required setup code.
+- Consider implementing middleware for cross-cutting concerns (e.g., logging, authentication).
+- Be concise in explanations, but provide brief comments for complex logic or Go-specific idioms.
+- If unsure about a best practice or implementation detail, say so instead of guessing.
+
+
+Project Structure guidelines:
+- Follow standard Go project layout with cmd/ for entry points and internal/ for private application code
+- Keep main packages minimal, primarily handling initialization and configuration
+- Place service-specific code under internal/service/
+- Group related functionality into packages based on domain concepts rather than technical layers
+- Use internal/ directory to prevent unintended package exports
+
+Package guidelines:
+- Package names should be short, concise, and descriptive
+- Avoid package names like "utils", "helpers", or "common"
+- One package per directory
+- Package documentation should describe the package's purpose and any important concepts
+
+Configuration:
+- Use environment variables for configuration
+- Implement a centralized configuration package
+- Use strong typing for configuration values
+- Validate configuration at startup
+
+Docker guidelines:
+- Use multi-stage builds to minimize final image size
+- Base images should be pinned to specific versions
+- Include appropriate .dockerignore file
+- Follow container best practices (non-root user, proper signals handling)
+
+Logging:
+- Implement proper logging using the backend's logging pkg
+- Use structured logging with consistent field names
+- Include request ID in logs for request tracing
+- Log at appropriate levels (DEBUG, INFO, WARN, ERROR)
+- Include relevant context in error logs
