@@ -4,6 +4,7 @@ import (
 	"brothers_in_batash/internal/pkg/models"
 	"brothers_in_batash/internal/pkg/store"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,14 +22,6 @@ var (
 			Name: "Commander",
 		}},
 	}
-	testStartTime = models.TimeOfDay{
-		Hour:   6,
-		Minute: 0,
-	}
-	testEndTime = models.TimeOfDay{
-		Hour:   7,
-		Minute: 0,
-	}
 )
 
 func TestNewShiftStore(t *testing.T) {
@@ -43,13 +36,11 @@ func TestInMemShiftStore_CreateNewShift__success(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:   "123",
-		Name: "Test Shift",
-		Type: models.MotorizedPatrolShiftType,
-		ShiftTime: models.ShiftTime{
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
-		},
+		ID:        "123",
+		StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
+		Name:      "Test Shift",
+		Type:      models.MotorizedPatrolShiftType,
 		Commander: testSoldier,
 	}
 
@@ -66,13 +57,11 @@ func TestInMemShiftStore_CreateNewShift__duplicate_id(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:   "123",
-		Name: "Test Shift",
-		Type: models.MotorizedPatrolShiftType,
-		ShiftTime: models.ShiftTime{
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
-		},
+		ID:        "123",
+		Name:      "Test Shift",
+		Type:      models.MotorizedPatrolShiftType,
+		StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 		Commander: testSoldier,
 	}
 
@@ -110,13 +99,11 @@ func TestInMemShiftStore_FindShiftByID__success(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:   "123",
-		Name: "Test Shift",
-		Type: models.MotorizedPatrolShiftType,
-		ShiftTime: models.ShiftTime{
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
-		},
+		ID:        "123",
+		Name:      "Test Shift",
+		Type:      models.MotorizedPatrolShiftType,
+		StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 		Commander: testSoldier,
 	}
 
@@ -152,23 +139,19 @@ func TestInMemShiftStore_FindAllShifts__success(t *testing.T) {
 
 	shifts := []models.Shift{
 		{
-			ID:   "1",
-			Name: "Shift 1",
-			Type: models.MotorizedPatrolShiftType,
-			ShiftTime: models.ShiftTime{
-				StartTime: testStartTime,
-				EndTime:   testEndTime,
-			},
+			ID:        "1",
+			Name:      "Shift 1",
+			Type:      models.MotorizedPatrolShiftType,
+			StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+			EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 			Commander: testSoldier,
 		},
 		{
-			ID:   "2",
-			Name: "Shift 2",
-			Type: models.StaticPostShiftType,
-			ShiftTime: models.ShiftTime{
-				StartTime: testStartTime,
-				EndTime:   testEndTime,
-			},
+			ID:        "2",
+			Name:      "Shift 2",
+			Type:      models.StaticPostShiftType,
+			StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+			EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 			Commander: testSoldier,
 		},
 	}
@@ -193,13 +176,11 @@ func TestInMemShiftStore_UpdateShift__success(t *testing.T) {
 
 	shiftID := "123"
 	shift := models.Shift{
-		ID:   shiftID,
-		Name: "Test Shift",
-		Type: models.MotorizedPatrolShiftType,
-		ShiftTime: models.ShiftTime{
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
-		},
+		ID:        shiftID,
+		Name:      "Test Shift",
+		Type:      models.MotorizedPatrolShiftType,
+		StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 		Commander: testSoldier,
 	}
 
@@ -239,13 +220,11 @@ func TestInMemShiftStore_UpdateShift__invalid_data(t *testing.T) {
 	require.NoError(t, err)
 
 	shift := models.Shift{
-		ID:   "123",
-		Name: "Test Shift",
-		Type: models.MotorizedPatrolShiftType,
-		ShiftTime: models.ShiftTime{
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
-		},
+		ID:        "123",
+		Name:      "Test Shift",
+		Type:      models.MotorizedPatrolShiftType,
+		StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 		Commander: testSoldier,
 	}
 
@@ -269,13 +248,11 @@ func TestInMemShiftStore_DeleteShift__success(t *testing.T) {
 
 	shiftID := "123"
 	shift := models.Shift{
-		ID:   shiftID,
-		Name: "Test Shift",
-		Type: models.MotorizedPatrolShiftType,
-		ShiftTime: models.ShiftTime{
-			StartTime: testStartTime,
-			EndTime:   testEndTime,
-		},
+		ID:        shiftID,
+		Name:      "Test Shift",
+		Type:      models.MotorizedPatrolShiftType,
+		StartTime: time.Date(2025, time.April, 9, 15, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2025, time.April, 9, 16, 0, 0, 0, time.UTC),
 		Commander: testSoldier,
 	}
 

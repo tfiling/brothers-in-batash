@@ -31,7 +31,7 @@ var testShiftTemplate = models.ShiftTemplate{
 		time.Monday: {
 			{
 				StartTime: models.TimeOfDay{Hour: 0, Minute: 0},
-				EndTime:   models.TimeOfDay{Hour: 1, Minute: 0},
+				Duration:  time.Hour,
 			},
 		},
 	},

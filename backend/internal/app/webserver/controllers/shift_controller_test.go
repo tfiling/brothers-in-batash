@@ -1,7 +1,6 @@
 package controllers_test
 
 import (
-	"brothers_in_batash/internal/app/webserver/api"
 	"brothers_in_batash/internal/app/webserver/controllers"
 	"brothers_in_batash/internal/pkg/mocks"
 	"brothers_in_batash/internal/pkg/models"
@@ -11,6 +10,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -37,35 +37,13 @@ var testCommander = models.Soldier{
 }
 
 var testShiftModel = models.Shift{
-	ID:   shiftID,
-	Name: testShiftName,
-	Type: models.MotorizedPatrolShiftType,
-	ShiftTime: models.ShiftTime{
-		StartTime: models.TimeOfDay{
-			Hour:   0,
-			Minute: 0,
-		},
-		EndTime: models.TimeOfDay{
-			Hour:   1,
-			Minute: 0,
-		},
-	},
+	ID:                 shiftID,
+	Name:               testShiftName,
+	Type:               models.MotorizedPatrolShiftType,
+	StartTime:          time.Date(2025, time.April, 9, 0, 0, 0, 0, time.UTC),
+	EndTime:            time.Date(2025, time.April, 9, 1, 0, 0, 0, time.UTC),
 	Commander:          testCommander,
 	AdditionalSoldiers: nil,
-}
-
-var testShiftReqBody = api.Shift{
-	ID:                    shiftID,
-	StartTimeHour:         0,
-	StartTimeMinute:       0,
-	EndTimeHour:           1,
-	EndTimeMinute:         0,
-	Type:                  api.MotorizedPatrolShiftType,
-	CommanderSoldierID:    testCommander.ID,
-	AdditionalSoldiersIDs: []string{},
-	Description:           "",
-	ShiftTemplateID:       "",
-	Name:                  "Test Shift",
 }
 
 func TestShiftController_NewShiftController__sad_flows(t *testing.T) {
@@ -147,7 +125,7 @@ func TestShiftController_CreateShift__success(t *testing.T) {
 	require.NoError(t, err)
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
-	req := httptest.NewRequest(fiber.MethodPost, controllers.CreateShiftRoute, test_utils.WrapStructWithReader(t, testShiftReqBody))
+	req := httptest.NewRequest(fiber.MethodPost, controllers.CreateShiftRoute, test_utils.WrapStructWithReader(t, testShiftModel))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
@@ -194,10 +172,10 @@ func TestShiftController_GetShift__success(t *testing.T) {
 	// Assert
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-	var respShift api.Shift
+	var respShift models.Shift
 	err = json.NewDecoder(resp.Body).Decode(&respShift)
 	assert.NoError(t, err)
-	assert.Equal(t, testShiftReqBody, respShift)
+	assert.Equal(t, testShiftModel, respShift)
 }
 
 func TestShiftController_UpdateShift__invalid_request_body(t *testing.T) {
@@ -232,7 +210,7 @@ func TestShiftController_UpdateShift__not_found(t *testing.T) {
 	err = controller.RegisterRoutes(app)
 	require.NoError(t, err)
 	req := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/shifts/%s", shiftID),
-		test_utils.WrapStructWithReader(t, testShiftReqBody))
+		test_utils.WrapStructWithReader(t, testShiftModel))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	// Act
@@ -245,7 +223,7 @@ func TestShiftController_UpdateShift__not_found(t *testing.T) {
 
 func TestShiftController_UpdateShift__success(t *testing.T) {
 	// Arrange
-	updatedShift := testShiftReqBody
+	updatedShift := testShiftModel
 	updatedShift.Name = "Updated Shift"
 	app := fiber.New()
 	shiftStoreMock := &mocks.MockIShiftStore{}
