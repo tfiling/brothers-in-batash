@@ -1,0 +1,20 @@
+---
+description: backend code tests
+globs: 
+alwaysApply: false
+---
+When  implementing tests for a backend component located in backend dir apply the following guidelines:
+- Implement tests in a file named <tested component name>_test.go
+- Locate tests in <pkg name>_test package ( black-box approach )
+- Use testify/assert for test assertions github.com/stretchr/testify
+- USe testify/require for test requirements assertions https://pkg.go.dev/github.com/stretchr/testify/require
+- Use table-driven tests when testing multiple scenarios
+- Mock external dependencies using interfaces
+- Each test function should be named declared as follows Test<tested component name in camel case>_<method name>__<use case name>(t *testing.T)
+- Each test function should have the following structure:
+//Arrange
+<set up and declare expected mocked store objects behaviour>
+//Act
+<Execute the tested flow>
+//Assert
+<Assertion statements using testify>

@@ -1,5 +1,5 @@
 'use client'
-
+// TODO: consider relocating this file
 import {useEffect} from 'react'
 
 export default function ClientLogger() {
