@@ -6,6 +6,8 @@ import {logger} from '../utils/logger'
 
 interface AuthContextType {
     user: string | null
+    token: string | null
+    refreshToken: string | null
     login: (username: string, password: string) => Promise<boolean>
     register: (username: string, password: string) => Promise<boolean>
     logout: () => void
@@ -16,13 +18,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({children}: { children: ReactNode }) {
     const [user, setUser] = useState<string | null>(null)
+    const [token, setToken] = useState<string | null>(null)
+    const [refreshToken, setRefreshToken] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
 
     useEffect(() => {
         // Check if user is logged in on mount
+        const storedToken = localStorage.getItem('token')
+        const storedRefreshToken = localStorage.getItem('refreshToken')
         const storedUser = localStorage.getItem('user')
-        if (storedUser) {
+
+        if (storedToken && storedUser) {
+            setToken(storedToken)
+            setRefreshToken(storedRefreshToken)
             setUser(storedUser)
         }
     }, [])
@@ -50,8 +59,17 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
             const data = await response.json()
             logger.info('login response body:', data)
-            setUser(data.username)
-            localStorage.setItem('user', data.username)
+
+            // Store the tokens
+            setToken(data.token)
+            setRefreshToken(data.refreshToken)
+            setUser(username) // Set the username from the login form input
+
+            // Save to localStorage
+            localStorage.setItem('token', data.token)
+            localStorage.setItem('refreshToken', data.refreshToken)
+            localStorage.setItem('user', username)
+            
             return true
         } catch (error) {
             console.error('Login error:', error)
@@ -86,12 +104,16 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const logout = () => {
         setUser(null)
+        setToken(null)
+        setRefreshToken(null)
         localStorage.removeItem('user')
+        localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
         router.push('/login')
     }
 
     return (
-        <AuthContext.Provider value={{user, login, register, logout, error}}>
+        <AuthContext.Provider value={{user, token, refreshToken, login, register, logout, error}}>
             {children}
         </AuthContext.Provider>
     )

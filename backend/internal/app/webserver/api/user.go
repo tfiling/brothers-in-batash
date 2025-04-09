@@ -18,3 +18,7 @@ type UserLoginRespBody struct {
 type RefreshTokenReqBody struct {
 	RefreshToken string `json:"refreshToken" validate:"required"`
 }
+
+type LogoutReqBody struct {
+	Token string `json:"token" validate:"required"`
+}

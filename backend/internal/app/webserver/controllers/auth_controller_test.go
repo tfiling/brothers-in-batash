@@ -445,3 +445,108 @@ func TestRegistrationController_RefreshToken__success(t *testing.T) {
 	assert.NotEmpty(t, respBody.Token)
 	assert.Equal(t, refreshToken, respBody.RefreshToken)
 }
+
+func TestRegistrationController_LogoutUser__invalid_body(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	userStoreMock := &IUserStoreMock{}
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(fiber.MethodPost, controllers.LogoutRoute, bytes.NewReader([]byte{}))
+	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(req, test_utils.TestTimeout)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_LogoutUser__missing_token(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	userStoreMock := &IUserStoreMock{}
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	logoutBody := api.LogoutReqBody{
+		Token: "",
+	}
+	req := httptest.NewRequest(fiber.MethodPost, controllers.LogoutRoute, test_utils.WrapStructWithReader(t, logoutBody))
+	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(req, test_utils.TestTimeout)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_LogoutUser__invalid_token(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	userStoreMock := &IUserStoreMock{}
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	logoutBody := api.LogoutReqBody{
+		Token: "invalid-token",
+	}
+	req := httptest.NewRequest(fiber.MethodPost, controllers.LogoutRoute, test_utils.WrapStructWithReader(t, logoutBody))
+	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(req, test_utils.TestTimeout)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}
+
+func TestRegistrationController_LogoutUser__success(t *testing.T) {
+	//Arrange
+	app := fiber.New()
+
+	username := "user"
+	token, err := jwtmw.GenerateToken(username, jwtmw.TokenExpiration)
+	assert.NoError(t, err)
+
+	userStoreMock := &IUserStoreMock{}
+	controller, err := controllers.NewRegistrationController(userStoreMock)
+	assert.NoError(t, err)
+	assert.NotNil(t, controller)
+	err = controllers.SetupRoutes(app, []controllers.Controller{controller})
+	assert.NoError(t, err)
+
+	logoutBody := api.LogoutReqBody{
+		Token: token,
+	}
+	req := httptest.NewRequest(fiber.MethodPost, controllers.LogoutRoute, test_utils.WrapStructWithReader(t, logoutBody))
+	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+	//Act
+	resp, err := app.Test(req, test_utils.TestTimeout)
+
+	//Assert
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	userStoreMock.AssertExpectations(t)
+}

@@ -30,6 +30,7 @@ func (c *RegistrationController) RegisterRoutes(router fiber.Router) error {
 	router.Post(RegisterRoute, c.registerUser)
 	router.Post(LoginRoute, c.loginUser)
 	router.Post(RefreshTokenRoute, c.refreshToken)
+	router.Post(LogoutRoute, c.logoutUser)
 	return nil
 }
 
@@ -84,18 +85,19 @@ func (c *RegistrationController) loginUser(ctx *fiber.Ctx) error {
 	}
 	if reqBody.Username == "admin" {
 		// TODO: remove this workaround
+		logging.Debug("Admin login", nil)
 		token, err := jwtmw.GenerateToken("admin", jwtmw.TokenExpiration)
 		if err != nil {
 			logging.Warning(err, "Failed generating JWT token", nil)
 			return ctx.SendStatus(fiber.StatusInternalServerError)
-		}	
+		}
 		refreshToken, err := jwtmw.GenerateToken("admin", jwtmw.RefreshTokenExpiration)
 		if err != nil {
 			logging.Warning(err, "Failed generating refresh token", nil)
 			return ctx.SendStatus(fiber.StatusInternalServerError)
 		}
 		return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: token, RefreshToken: refreshToken})
-	}	
+	}
 	users, err := c.userStore.FindUserByUsername(reqBody.Username)
 	if err != nil {
 		logging.Warning(err, "Failed querying users from DB on login", nil)
@@ -169,6 +171,39 @@ func (c *RegistrationController) refreshToken(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: newToken, RefreshToken: reqBody.RefreshToken})
+}
+
+func (c *RegistrationController) logoutUser(ctx *fiber.Ctx) error {
+	reqBody := api.LogoutReqBody{}
+	if err := ctx.BodyParser(&reqBody); err != nil {
+		logging.Info("Could not parse logout request body", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	if err := validator.New().Struct(reqBody); err != nil {
+		logging.Info("Logout request body failed validation", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	token, err := jtoken.Parse(reqBody.Token, func(token *jtoken.Token) (interface{}, error) {
+		return []byte(jwtmw.SigningSecret), nil
+	})
+	if token != nil && !token.Valid {
+		err = errors.New("invalid token")
+	}
+	if err != nil {
+		logging.Trace("Invalid token in logout request", []logging.LogProp{{"error", err.Error()}})
+		return ctx.SendStatus(fiber.StatusUnauthorized)
+	}
+	//At this point token is not nil(ignore the linting warning)
+	claims, ok := token.Claims.(jtoken.MapClaims)
+	if ok {
+		username, _ := claims[jwtmw.IDClaimField].(string)
+		logging.Trace("User logged out", []logging.LogProp{{"username", username}})
+	}
+
+	logging.Trace("logoutUser successful", nil)
+	return ctx.SendStatus(fiber.StatusOK)
 }
 
 func hashPassword(password string) ([]byte, error) {
