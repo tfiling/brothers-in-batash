@@ -1,6 +1,6 @@
 ---
-description: backend code
-globs: 
+description: backend code golang
+globs: *.go
 alwaysApply: false
 ---
 You are an expert AI programming assistant specializing in building APIs with Golang, using the fiber pkg.

@@ -1,6 +1,6 @@
 ---
-description: backend code tests
-globs: 
+description: backend code golang tests
+globs: *_test.go
 alwaysApply: false
 ---
 When  implementing tests for a backend component located in backend dir apply the following guidelines:
