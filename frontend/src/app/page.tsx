@@ -1,6 +1,6 @@
 'use client'
 
-import {Calendar, dateFnsLocalizer, Event, SlotInfo} from 'react-big-calendar'
+import {Calendar, dateFnsLocalizer, Event, SlotInfo, View} from 'react-big-calendar'
 import {format} from 'date-fns/format'
 import {parse} from 'date-fns/parse'
 import {startOfWeek} from 'date-fns/startOfWeek'
@@ -9,7 +9,7 @@ import {enUS} from 'date-fns/locale/en-US'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import ProtectedRoute from './components/ProtectedRoute'
 import {logger} from './utils/logger'
-import {useEffect, useState} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {fetchShifts} from './services/shiftService'
 import {Shift, ShiftType} from './types/shift'
 
@@ -25,10 +25,35 @@ const localizer = dateFnsLocalizer({
     locales,
 })
 
+// Custom hook to manage calendar state
+// Fixes a navigation bug(possibly https://github.com/jquense/react-big-calendar/issues/2720)
+const useCustomCalendar = () => {
+    const [view, setView] = useState<View>('week');
+    const [date, setDate] = useState<Date>(new Date());
+
+    const onView = useCallback((newView: View) => {
+        logger.info('View changed to:', newView);
+        setView(newView);
+    }, []);
+
+    const onNavigate = useCallback((newDate: Date) => {
+        logger.info('Date navigated to:', newDate);
+        setDate(newDate);
+    }, []);
+
+    return {
+        view,
+        date,
+        onView,
+        onNavigate,
+    };
+};
+
 export default function HomePage() {
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const {view, date, onView, onNavigate} = useCustomCalendar();
 
     const loadShifts = async () => {
         try {
@@ -128,7 +153,10 @@ export default function HomePage() {
                     onSelectSlot={handleSelectSlot}
                     eventPropGetter={eventPropGetter}
                     selectable
-                    defaultView="week"
+                    view={view}
+                    date={date}
+                    onView={onView}
+                    onNavigate={onNavigate}
                     className="calendar-light-theme"
                 />
             </div>
