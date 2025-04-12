@@ -275,3 +275,168 @@ a {
 .rbc-event.shift-daily-duty {
     background-color: #8b5cf6; /* purple */
 }
+
+/* Light theme specific styles */
+.calendar-light-theme {
+    --cal-bg-color: #ffffff;
+    --cal-text-color: #333333;
+    --cal-border-color: #e5e7eb;
+    --cal-highlight-color: #f0f9ff;
+    --cal-header-bg: #f8f9fa;
+    --cal-toolbar-bg: #f8f9fa;
+    --cal-btn-bg: #ffffff;
+    --cal-btn-color: #333333;
+    --cal-btn-border: #d1d5db;
+    --cal-btn-hover-bg: #f3f4f6;
+    --cal-btn-active-bg: var(--primary);
+    --cal-btn-active-color: white;
+    --cal-off-range-color: #9ca3af;
+    --cal-off-range-bg: #f8f9fa;
+}
+
+/* Custom styles for react-big-calendar - override dark mode */
+.calendar-container .rbc-calendar {
+    background-color: var(--cal-bg-color, #ffffff);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    height: calc(100% - 24px) !important;
+}
+
+/* Header styling */
+.rbc-toolbar {
+    margin-bottom: 20px !important;
+    padding: 10px;
+    background-color: var(--cal-toolbar-bg, #f8f9fa);
+    border-radius: 6px;
+    color: var(--cal-text-color, #333) !important;
+}
+
+.rbc-toolbar button {
+    color: var(--cal-btn-color, #333) !important;
+    border: 1px solid var(--cal-btn-border, #d1d5db) !important;
+    background-color: var(--cal-btn-bg, #fff) !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
+    font-weight: 500 !important;
+}
+
+.rbc-toolbar button:hover {
+    background-color: var(--cal-btn-hover-bg, #f3f4f6) !important;
+    border-color: #bbc1cc !important;
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button.rbc-active {
+    background-color: var(--cal-btn-active-bg, var(--primary)) !important;
+    color: var(--cal-btn-active-color, white) !important;
+    border-color: var(--primary) !important;
+}
+
+.rbc-toolbar button.rbc-active:hover {
+    background-color: var(--primary-hover) !important;
+    color: white !important;
+}
+
+/* Table styling */
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+    background-color: var(--cal-bg-color, #fff) !important;
+    border: 1px solid var(--cal-border-color, #e5e7eb) !important;
+    border-radius: 6px;
+}
+
+.rbc-header {
+    font-weight: 600 !important;
+    padding: 10px 3px !important;
+    background-color: var(--cal-header-bg, #f8f9fa) !important;
+    color: var(--cal-text-color, #333) !important;
+    border-bottom: 1px solid var(--cal-border-color, #e5e7eb) !important;
+}
+
+.rbc-day-bg {
+    background-color: var(--cal-bg-color, #fff) !important;
+}
+
+.rbc-day-bg.rbc-today {
+    background-color: var(--cal-highlight-color, #f0f9ff) !important;
+}
+
+.rbc-date-cell {
+    padding: 4px 8px !important;
+    color: var(--cal-text-color, #333) !important;
+    font-weight: 500;
+}
+
+.rbc-off-range-bg {
+    background-color: var(--cal-off-range-bg, #f8f9fa) !important;
+}
+
+.rbc-off-range {
+    color: var(--cal-off-range-color, #9ca3af) !important;
+}
+
+.rbc-time-content {
+    border-top: 1px solid var(--cal-border-color, #e5e7eb) !important;
+}
+
+.rbc-time-gutter,
+.rbc-time-header-gutter {
+    color: var(--cal-text-color, #333) !important;
+    background-color: var(--cal-header-bg, #f8f9fa) !important;
+}
+
+.rbc-timeslot-group {
+    border-bottom: 1px solid var(--cal-border-color, #f0f0f0) !important;
+}
+
+.rbc-label {
+    color: var(--cal-text-color, #333) !important;
+    font-weight: 500;
+}
+
+.rbc-events-container {
+    margin-right: 0 !important;
+}
+
+/* Override any dark mode specific settings */
+@media (prefers-color-scheme: dark) {
+    .calendar-container .rbc-calendar,
+    .rbc-toolbar,
+    .rbc-month-view,
+    .rbc-time-view,
+    .rbc-agenda-view,
+    .rbc-header,
+    .rbc-day-bg,
+    .rbc-label,
+    .rbc-time-gutter,
+    .rbc-time-header-gutter {
+        color: var(--cal-text-color, #333) !important;
+        background-color: var(--cal-bg-color, #fff) !important;
+    }
+
+    .rbc-toolbar button {
+        color: var(--cal-btn-color, #333) !important;
+        border-color: var(--cal-btn-border, #d1d5db) !important;
+        background-color: var(--cal-btn-bg, #fff) !important;
+    }
+
+    .rbc-toolbar button.rbc-active {
+        background-color: var(--cal-btn-active-bg, var(--primary)) !important;
+        color: var(--cal-btn-active-color, white) !important;
+        border-color: var(--primary) !important;
+    }
+
+    .rbc-date-cell {
+        color: var(--cal-text-color, #333) !important;
+    }
+
+    .rbc-off-range {
+        color: var(--cal-off-range-color, #9ca3af) !important;
+    }
+
+    .rbc-day-bg.rbc-today {
+        background-color: var(--cal-highlight-color, #f0f9ff) !important;
+    }
+}

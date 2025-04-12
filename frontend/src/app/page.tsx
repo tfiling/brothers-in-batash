@@ -129,6 +129,7 @@ export default function HomePage() {
                     eventPropGetter={eventPropGetter}
                     selectable
                     defaultView="week"
+                    className="calendar-light-theme"
                 />
             </div>
         </ProtectedRoute>
