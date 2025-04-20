@@ -60,15 +60,15 @@ export function AuthProvider({children}: { children: ReactNode }) {
             const data = await response.json()
             logger.info('login response body:', data)
 
-            // Store the tokens
+            // Store the tokens and user info
             setToken(data.token)
             setRefreshToken(data.refreshToken)
-            setUser(username) // Set the username from the login form input
+            setUser(data.username)
 
             // Save to localStorage
             localStorage.setItem('token', data.token)
             localStorage.setItem('refreshToken', data.refreshToken)
-            localStorage.setItem('user', username)
+            localStorage.setItem('user', data.username || username)
             
             return true
         } catch (error) {

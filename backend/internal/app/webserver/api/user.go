@@ -13,6 +13,7 @@ type UserLoginReqBody struct {
 type UserLoginRespBody struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refreshToken"`
+	Username     string `json:"username"`
 }
 
 type RefreshTokenReqBody struct {

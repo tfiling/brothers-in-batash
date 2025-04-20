@@ -96,7 +96,11 @@ func (c *RegistrationController) loginUser(ctx *fiber.Ctx) error {
 			logging.Warning(err, "Failed generating refresh token", nil)
 			return ctx.SendStatus(fiber.StatusInternalServerError)
 		}
-		return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: token, RefreshToken: refreshToken})
+		return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{
+			Token: token, 
+			RefreshToken: refreshToken, 
+			Username: reqBody.Username,
+		})
 	}
 	users, err := c.userStore.FindUserByUsername(reqBody.Username)
 	if err != nil {
@@ -126,7 +130,11 @@ func (c *RegistrationController) loginUser(ctx *fiber.Ctx) error {
 		logging.Warning(err, "Failed generating refresh token", nil)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
-	return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{Token: token, RefreshToken: refreshToken})
+	return ctx.Status(fiber.StatusOK).JSON(api.UserLoginRespBody{
+		Token: token, 
+		RefreshToken: refreshToken, 
+		Username: reqBody.Username,
+	})
 }
 
 func (c *RegistrationController) refreshToken(ctx *fiber.Ctx) error {
